@@ -79,11 +79,12 @@ const STATUS_LABELS = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  getSpreadsheet — auto-discovers and caches the spreadsheet
+//  getSpreadsheet — auto-discovers, creates, and caches the sheet
 //  Resolution order:
 //    1. Cached ID in Script Properties (fastest after first run)
-//    2. Bound spreadsheet (container-bound script via Extensions → Apps Script)
-//    3. Drive search by SPREADSHEET_NAME (standalone script)
+//    2. Bound spreadsheet (container-bound script)
+//    3. Drive search by SPREADSHEET_NAME
+//    4. Create a brand-new spreadsheet (fully automated first-run)
 // ═══════════════════════════════════════════════════════════════
 function getSpreadsheet() {
   const props = PropertiesService.getScriptProperties();
@@ -98,29 +99,121 @@ function getSpreadsheet() {
     }
   }
 
-  // 2. Try the bound spreadsheet (works when script is inside the sheet)
+  // 2. Try the bound spreadsheet (container-bound script)
   try {
     const bound = SpreadsheetApp.getActiveSpreadsheet();
     if (bound) {
+      initSpreadsheet(bound);
       props.setProperty('_SS_ID', bound.getId());
       return bound;
     }
   } catch (e) {}
 
-  // 3. Search Drive by name (standalone script)
-  if (SPREADSHEET_NAME) {
-    const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
-    if (files.hasNext()) {
-      const id = files.next().getId();
-      props.setProperty('_SS_ID', id);
-      return SpreadsheetApp.openById(id);
+  // 3. Search Drive by name
+  const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
+  if (files.hasNext()) {
+    const id = files.next().getId();
+    const ss = SpreadsheetApp.openById(id);
+    initSpreadsheet(ss);
+    props.setProperty('_SS_ID', id);
+    return ss;
+  }
+
+  // 4. Create the spreadsheet from scratch — no manual work needed
+  const ss = SpreadsheetApp.create(SPREADSHEET_NAME);
+  initSpreadsheet(ss);
+  props.setProperty('_SS_ID', ss.getId());
+  Logger.log('[INFO] [getSpreadsheet] Created new spreadsheet: ' + ss.getId());
+  return ss;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  initSpreadsheet — creates/validates all required tabs & headers
+//  Safe to call multiple times; only acts when something is missing.
+// ═══════════════════════════════════════════════════════════════
+function initSpreadsheet(ss) {
+  _initTrackingSheet(ss);
+  _initHistorySheet(ss);
+  _initLogsSheet(ss);
+}
+
+function _initTrackingSheet(ss) {
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    // Rename the default "Sheet1" tab rather than inserting a new one
+    const defaultSheet = ss.getSheets()[0];
+    if (defaultSheet && defaultSheet.getName() === 'Sheet1') {
+      sheet = defaultSheet;
+      sheet.setName(SHEET_NAME);
+    } else {
+      sheet = ss.insertSheet(SHEET_NAME);
     }
   }
 
-  throw new Error(
-    'Spreadsheet not found. Make sure SPREADSHEET_NAME in Code.gs matches ' +
-    'the exact name of your Google Sheet (currently: "' + SPREADSHEET_NAME + '").'
-  );
+  // Only write headers if row 1 is empty
+  if (sheet.getRange('A1').getValue() === '') {
+    const headers = [
+      'Tracking Number', 'Customer Email', 'Status', 'Location',
+      'Last Updated', 'ETA', 'Customer Name', 'Previous Status',
+      'Delivery Photo', 'Service Tier', 'Package Contents',
+    ];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+    // Formatting
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setBackground('#0A1628').setFontColor('#FFFFFF')
+               .setFontWeight('bold').setFontSize(11);
+
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(1, 180);  // Tracking Number
+    sheet.setColumnWidth(2, 200);  // Customer Email
+    sheet.setColumnWidth(3, 160);  // Status
+    sheet.setColumnWidth(4, 180);  // Location
+    sheet.setColumnWidth(5, 150);  // Last Updated
+    sheet.setColumnWidth(6, 120);  // ETA
+    sheet.setColumnWidth(7, 150);  // Customer Name
+    sheet.setColumnWidth(8, 160);  // Previous Status
+    sheet.setColumnWidth(9, 220);  // Delivery Photo
+    sheet.setColumnWidth(10, 120); // Service Tier
+    sheet.setColumnWidth(11, 200); // Package Contents
+
+    // Alternate row banding
+    try {
+      sheet.getRange(2, 1, 1000, headers.length)
+           .applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
+    } catch (e) {}
+  }
+}
+
+function _initHistorySheet(ss) {
+  if (ss.getSheetByName(HISTORY_SHEET)) return;
+  const sheet = ss.insertSheet(HISTORY_SHEET);
+  const headers = ['Tracking Number', 'Step', 'Time', 'Location', 'Note'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length)
+       .setBackground('#1E3A5F').setFontColor('#FFFFFF')
+       .setFontWeight('bold').setFontSize(11);
+  sheet.setFrozenRows(1);
+  sheet.setColumnWidth(1, 180);
+  sheet.setColumnWidth(2, 160);
+  sheet.setColumnWidth(3, 150);
+  sheet.setColumnWidth(4, 180);
+  sheet.setColumnWidth(5, 250);
+}
+
+function _initLogsSheet(ss) {
+  if (ss.getSheetByName(LOG_SHEET)) return;
+  const sheet = ss.insertSheet(LOG_SHEET);
+  const headers = ['Timestamp', 'Level', 'Context', 'Message'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length)
+       .setBackground('#3D0000').setFontColor('#FFFFFF')
+       .setFontWeight('bold').setFontSize(11);
+  sheet.setFrozenRows(1);
+  sheet.setColumnWidth(1, 170);
+  sheet.setColumnWidth(2, 80);
+  sheet.setColumnWidth(3, 140);
+  sheet.setColumnWidth(4, 400);
 }
 
 // ═══════════════════════════════════════════════════════════════
