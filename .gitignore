@@ -8,5 +8,16 @@ Thumbs.db
 *.swp
 *.swo
 
+# Replit — internal only, never push to GitHub
+.replit
+replit.nix
+.cache/
+.local/
+.agents/
+
+# Build artifacts & temp files
+zipFile.zip
+*.zip
+
 # Secrets — never commit your GAS URL to a public repo
 # (it's embedded in index.html — keep the repo private or use env substitution)
