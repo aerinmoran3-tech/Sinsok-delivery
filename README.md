@@ -5,24 +5,22 @@
 
 ---
 
-## Quick Deploy (5 Steps)
+## Quick Deploy (4 Steps)
 
-### 1 — Fork & Host on GitHub Pages
+### 1 — Push to GitHub & Deploy on Netlify
 
-```bash
-git clone https://github.com/YOUR_USERNAME/sinsok-delivery
-cd sinsok-delivery
-# Upload to GitHub, then enable Pages: Settings → Pages → main branch → /root
-```
+1. Push this repository to GitHub
+2. Go to [netlify.com](https://netlify.com) → **Add new site** → **Import from GitHub**
+3. Select your repository
+4. Set build settings:
+   - Base directory: *(leave blank)*
+   - Build command: *(leave blank)*
+   - Publish directory: `.`
+5. Click **Deploy** — your site will be live in ~30 seconds
 
-Or deploy to **Cloudflare Pages** (recommended — faster, free custom domains):
+The `netlify.toml` in this repo configures everything automatically.
 
-```
-1. Go to pages.cloudflare.com
-2. Connect your GitHub repo
-3. Build settings: Framework = None, Build command = (empty), Output = /
-4. Deploy — live in ~30 seconds
-```
+---
 
 ### 2 — Create Google Sheet
 
@@ -34,16 +32,20 @@ Create a spreadsheet at sheets.google.com with a tab named **`Tracking`** and th
 
 > ⚠️ **Do not insert, delete, or reorder columns.** The script maps by column position.
 
+---
+
 ### 3 — Deploy the Apps Script Backend
 
 1. In your Sheet: **Extensions → Apps Script**
 2. Delete all existing code
 3. Paste the entire contents of `Code.gs`
-4. Set `SITE_URL` at the top to your live site URL (e.g. `https://yoursite.pages.dev`)
+4. Set `SITE_URL` at the top to your Netlify URL (e.g. `https://your-app.netlify.app`)
 5. **Deploy → New deployment → Web app**
    - Execute as: **Me**
    - Who has access: **Anyone**
 6. Copy the Web App URL
+
+---
 
 ### 4 — Connect Frontend to Backend
 
@@ -54,11 +56,7 @@ const GAS_URL       = 'https://script.google.com/macros/s/YOUR_ID/exec';
 const USE_MOCK_DATA = false;
 ```
 
-Push to GitHub — Cloudflare auto-deploys within seconds.
-
-### 5 — Test
-
-Run `testEmailSend()` in Apps Script (update the email first), then track a real number on your site.
+Push to GitHub — Netlify auto-deploys within seconds.
 
 ---
 
@@ -68,6 +66,8 @@ Run `testEmailSend()` in Apps Script (update the email first), then track a real
 sinsok-delivery/
 ├── index.html       ← Complete frontend (single file, zero dependencies)
 ├── Code.gs          ← Google Apps Script backend (paste into Apps Script editor)
+├── netlify.toml     ← Netlify deployment configuration
+├── AGENTS.md        ← AI agent usage rules (do not delete)
 ├── docs/
 │   ├── SETUP.md     ← Full setup guide
 │   └── SHEET.md     ← Google Sheet column reference
@@ -156,18 +156,20 @@ Any alphanumeric + hyphen format works, up to 40 characters.
 
 | Problem | Fix |
 |---------|-----|
-| "Package Not Found" for real data | Set `USE_MOCK_DATA = false` and redeploy |
+| "Package Not Found" for real data | Set `USE_MOCK_DATA = false` and push to GitHub |
+| Seeing demo data on live site | Set `USE_MOCK_DATA = false` in `index.html` |
 | Email not sending | Re-authorize: Apps Script → Deploy → Manage deployments |
 | Status badge stays unchanged | Hard refresh (Ctrl+Shift+R / Cmd+Shift+R) |
 | `onEdit` not firing | Apps Script → Triggers → Add: `onEdit`, From spreadsheet, On edit |
 | Email failures visible | Check the **Logs** tab in your spreadsheet |
 | History not building | History tab is auto-created on first status change |
+| Email links go to wrong URL | Update `SITE_URL` in `Code.gs` to your Netlify URL |
 
 ---
 
 ## Version
 
-`2.0.0` — See `Code.gs` `VERSION` constant.
+`3.0.0` — See `Code.gs` `VERSION` constant.
 
 ---
 

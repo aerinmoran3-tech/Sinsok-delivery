@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>신속배송 · Sinsok Delivery — Track Your Package</title>
   <meta name="description" content="Real-time package tracking for Sinsok Delivery. 배송 상태를 실시간으로 확인하세요." />
-  <!-- Phase 3: theme-color + canonical -->
   <meta name="theme-color" content="#0A1628" />
-  <link rel="canonical" href="https://YOUR_SITE_URL_HERE/" />
+  <link rel="canonical" href="" id="canonicalTag" />
   <!-- Phase 3: SVG favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230A1628'/><path d='M5 10h15v10H5zm15 3h5l3 3v4h-8V13z' fill='%232563EB'/><circle cx='9' cy='22' r='2' fill='%2310B981'/><circle cx='19' cy='22' r='2' fill='%2310B981'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -910,13 +909,24 @@
 
   <script>
     /* ══════════════════════════════════════════════════════
-       CONFIGURATION — EDIT BEFORE DEPLOYING
+       CONFIGURATION
+       ─────────────────────────────────────────────────────
+       STEP 1 ▶ Paste your Google Apps Script Web App URL below.
+                Go to: Apps Script → Deploy → New Deployment → Web App
+                Execute as: Me | Who has access: Anyone
+       STEP 2 ▶ Set USE_MOCK_DATA to false once GAS_URL is real.
     ══════════════════════════════════════════════════════ */
     const GAS_URL       = 'YOUR_GAS_WEB_APP_URL_HERE';
-    const USE_MOCK_DATA = true;  // Set to false when GAS_URL is set
+    const USE_MOCK_DATA = true;  // ← Change to false after setting GAS_URL above
 
     // Auto-refresh interval in seconds (set to 0 to disable)
     const AUTO_REFRESH_SECONDS = 30;
+
+    /* ── Canonical URL (set automatically from current page URL) ── */
+    (function () {
+      const tag = document.getElementById('canonicalTag');
+      if (tag) tag.href = window.location.href.split('?')[0].replace(/\/$/, '') + '/';
+    })();
 
     /* ══════════════════════════════════════════════════════
        Dynamic footer year

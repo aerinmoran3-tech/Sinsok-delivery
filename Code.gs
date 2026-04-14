@@ -13,13 +13,16 @@
 const VERSION = '3.0.0';
 
 // ─── CONFIGURATION ──────────────────────────────────────────────
+// ▶ REQUIRED: Set SITE_URL to your live Netlify domain before deploying.
+//   Example: 'https://your-app-name.netlify.app'
+//   This is used in email notifications so customers can click to track.
 const SHEET_NAME    = 'Tracking';
 const HISTORY_SHEET = 'History';
 const LOG_SHEET     = 'Logs';
 const COMPANY_NAME  = '신속배송 · Sinsok Delivery';
 const COMPANY_KR    = '신속배송';
 const BRAND_COLOR   = '#2563EB';
-const SITE_URL      = 'YOUR_SITE_URL_HERE'; // e.g. https://yoursite.pages.dev
+const SITE_URL      = 'YOUR_NETLIFY_SITE_URL_HERE'; // ← Replace with e.g. https://your-app.netlify.app
 
 // ─── RATE LIMITING ───────────────────────────────────────────────
 // Maximum requests per IP per minute window.
