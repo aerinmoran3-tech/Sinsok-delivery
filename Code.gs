@@ -21,11 +21,10 @@ const ADMIN_KEY = 'sinsok-admin-2026';
 //   Example: 'https://your-app-name.netlify.app'
 //   This is used in email notifications so customers can click to track.
 //
-// ▶ REQUIRED (standalone script): Set SPREADSHEET_ID to your Google Sheet ID.
-//   Find it in the sheet URL: docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
-//   Leave blank only if this script is opened via Extensions → Apps Script
-//   from inside the sheet (container-bound).
-const SPREADSHEET_ID = '';
+// ▶ Set SPREADSHEET_NAME to the exact name of your Google Sheet.
+//   The script will find it automatically in your Drive — no ID needed.
+//   Example: 'Sinsok Delivery Tracker'
+const SPREADSHEET_NAME = 'Sinsok Delivery';
 
 const SHEET_NAME    = 'Tracking';
 const HISTORY_SHEET = 'History';
@@ -80,13 +79,48 @@ const STATUS_LABELS = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-//  getSpreadsheet — returns the bound or standalone spreadsheet
+//  getSpreadsheet — auto-discovers and caches the spreadsheet
+//  Resolution order:
+//    1. Cached ID in Script Properties (fastest after first run)
+//    2. Bound spreadsheet (container-bound script via Extensions → Apps Script)
+//    3. Drive search by SPREADSHEET_NAME (standalone script)
 // ═══════════════════════════════════════════════════════════════
 function getSpreadsheet() {
-  if (SPREADSHEET_ID) {
-    return SpreadsheetApp.openById(SPREADSHEET_ID);
+  const props = PropertiesService.getScriptProperties();
+
+  // 1. Use cached ID if available
+  const cachedId = props.getProperty('_SS_ID');
+  if (cachedId) {
+    try {
+      return SpreadsheetApp.openById(cachedId);
+    } catch (e) {
+      props.deleteProperty('_SS_ID');
+    }
   }
-  return SpreadsheetApp.getActiveSpreadsheet();
+
+  // 2. Try the bound spreadsheet (works when script is inside the sheet)
+  try {
+    const bound = SpreadsheetApp.getActiveSpreadsheet();
+    if (bound) {
+      props.setProperty('_SS_ID', bound.getId());
+      return bound;
+    }
+  } catch (e) {}
+
+  // 3. Search Drive by name (standalone script)
+  if (SPREADSHEET_NAME) {
+    const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
+    if (files.hasNext()) {
+      const id = files.next().getId();
+      props.setProperty('_SS_ID', id);
+      return SpreadsheetApp.openById(id);
+    }
+  }
+
+  throw new Error(
+    'Spreadsheet not found. Make sure SPREADSHEET_NAME in Code.gs matches ' +
+    'the exact name of your Google Sheet (currently: "' + SPREADSHEET_NAME + '").'
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════
