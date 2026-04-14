@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>신속배송 · Sinsok Delivery — Track Your Package</title>
+  <meta name="description" content="Real-time package tracking for Sinsok Delivery. 배송 상태를 실시간으로 확인하세요." />
+  <!-- Phase 3: theme-color + canonical -->
+  <meta name="theme-color" content="#0A1628" />
+  <link rel="canonical" href="https://YOUR_SITE_URL_HERE/" />
+  <!-- Phase 3: SVG favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230A1628'/><path d='M5 10h15v10H5zm15 3h5l3 3v4h-8V13z' fill='%232563EB'/><circle cx='9' cy='22' r='2' fill='%2310B981'/><circle cx='19' cy='22' r='2' fill='%2310B981'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & TOKENS ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-950: #050E1F;
+      --blue-900: #0A1628;
+      --blue-800: #102040;
+      --blue-700: #1A3560;
+      --blue-600: #1E4080;
+      --accent:        #2563EB;
+      --accent-light:  #3B82F6;
+      --accent-pale:   #DBEAFE;
+      --accent-glow:   rgba(37,99,235,0.18);
+      --green:     #10B981;
+      --green-bg:  rgba(16,185,129,0.10);
+      --amber:     #F59E0B;
+      --amber-bg:  rgba(245,158,11,0.10);
+      --red:       #EF4444;
+      --red-bg:    rgba(239,68,68,0.08);
+      --surface:   #FFFFFF;
+      --surface-2: #F4F6FA;
+      --surface-3: #EDF0F7;
+      --border:    #E2E8F4;
+      --border-2:  #D0D9ED;
+      --text-primary:   #0A1628;
+      --text-secondary: #4A5568;
+      --text-muted:     #94A3B8;
+      --shadow-sm: 0 1px 4px rgba(10,22,40,0.06);
+      --shadow-md: 0 4px 16px rgba(10,22,40,0.10);
+      --shadow-lg: 0 8px 40px rgba(10,22,40,0.14);
+      --shadow-xl: 0 20px 60px rgba(10,22,40,0.18);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', 'Noto Sans KR', sans-serif;
+      background: var(--surface-2);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────── */
+    header {
+      background: var(--blue-900);
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .logo:hover .logo-icon { background: var(--accent-light); transform: rotate(-5deg); }
+    .logo-icon svg { width: 18px; height: 18px; fill: #fff; }
+
+    .logo-text { display: flex; flex-direction: column; line-height: 1; }
+    .logo-kr { font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 700; color: var(--accent-light); letter-spacing: 0.04em; }
+    .logo-en { font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.01em; }
+
+    .header-lang { display: flex; gap: 4px; }
+
+    .lang-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.55);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+
+    /* ─── HERO BAND ───────────────────────────────────────── */
+    .hero {
+      background: var(--blue-900);
+      padding: 36px 20px 44px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(37,99,235,0.15);
+      border: 1px solid rgba(37,99,235,0.30);
+      color: #93C5FD;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 12px; border-radius: 100px; margin-bottom: 16px; position: relative;
+    }
+    .hero-eyebrow .dot {
+      width: 6px; height: 6px; background: #10B981; border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .hero h1 {
+      font-size: clamp(22px, 5vw, 30px); font-weight: 700; color: #fff;
+      margin-bottom: 6px; letter-spacing: -0.02em; position: relative;
+    }
+    .hero h1 span { color: var(--accent-light); }
+    .hero-sub {
+      font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 28px;
+      font-family: 'Noto Sans KR', sans-serif; font-weight: 300; position: relative;
+    }
+
+    /* ─── SEARCH CARD ─────────────────────────────────────── */
+    .search-card {
+      background: #fff; border-radius: var(--radius-lg); padding: 20px;
+      box-shadow: var(--shadow-xl); max-width: 480px; margin: 0 auto; position: relative;
+    }
+    .search-label {
+      display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .search-row { display: flex; gap: 8px; }
+
+    .search-input {
+      flex: 1; height: 48px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0 14px; font-family: var(--font-mono); font-size: 14px; font-weight: 500;
+      color: var(--text-primary); background: var(--surface-2);
+      transition: var(--transition); outline: none; letter-spacing: 0.02em;
+      -webkit-appearance: none; appearance: none;
+    }
+    .search-input::placeholder { color: var(--text-muted); font-weight: 400; font-family: 'DM Sans', sans-serif; }
+    .search-input:focus {
+      border-color: var(--accent); background: #fff;
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .search-btn {
+      height: 48px; padding: 0 20px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 7px; white-space: nowrap; flex-shrink: 0;
+      position: relative; overflow: hidden;
+    }
+    .search-btn:hover:not(:disabled) { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .search-btn:active:not(:disabled) { transform: translateY(0); }
+    .search-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    .search-btn svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; }
+
+    /* Spinning loader inside button */
+    .btn-spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .search-btn.loading .btn-spinner { display: block; }
+    .search-btn.loading .btn-search-icon { display: none; }
+
+    .search-hint {
+      font-size: 11px; color: var(--text-muted); margin-top: 10px; text-align: center;
+    }
+    .search-hint a { color: var(--accent); text-decoration: none; cursor: pointer; }
+    .search-hint a:hover { text-decoration: underline; }
+
+    /* ─── RECENT SEARCHES ─────────────────────────────────── */
+    .recent-searches {
+      margin-top: 12px;
+      display: none; /* shown via JS if items exist */
+    }
+    .recent-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .recent-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .recent-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 9px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+    }
+    .recent-chip:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+    .recent-chip svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
+
+    /* ─── MAIN CONTENT ────────────────────────────────────── */
+    main {
+      flex: 1; padding: 24px 16px 40px;
+      max-width: 560px; margin: 0 auto; width: 100%;
+    }
+
+    /* ─── AUTO-REFRESH BAR ────────────────────────────────── */
+    #refresh-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(37,99,235,0.07);
+      border: 1px solid rgba(37,99,235,0.15);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      gap: 10px;
+    }
+    .refresh-left { display: flex; align-items: center; gap: 8px; }
+    .refresh-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+      flex-shrink: 0; animation: pulse-dot 2s infinite;
+    }
+    #refresh-countdown { font-weight: 600; color: var(--accent); }
+    .refresh-cancel-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; color: var(--text-muted); padding: 2px 6px;
+      border-radius: 4px; transition: var(--transition); font-family: inherit;
+    }
+    .refresh-cancel-btn:hover { background: rgba(0,0,0,0.06); color: var(--text-secondary); }
+
+    /* ─── DELIVERED CELEBRATION BANNER ───────────────────── */
+    #delivered-banner {
+      display: none;
+      background: linear-gradient(135deg, #059669, #10B981);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 12px;
+      text-align: center;
+      animation: bannerIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+    @keyframes bannerIn {
+      from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #delivered-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 50%, rgba(255,255,255,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .banner-check {
+      font-size: 36px; margin-bottom: 6px; line-height: 1;
+      animation: popIn 0.4s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .banner-title {
+      font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 3px; letter-spacing: -0.01em;
+    }
+    .banner-sub { font-size: 13px; color: rgba(255,255,255,0.78); }
+    .banner-name { font-weight: 700; color: #fff; }
+
+    /* ─── PROGRESS COUNTER ────────────────────────────────── */
+    .progress-counter {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .progress-track {
+      flex: 1; height: 5px; background: var(--surface-3); border-radius: 100px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .progress-text {
+      font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; flex-shrink: 0;
+    }
+    .progress-text span { color: var(--accent); }
+
+    /* ─── LOADING SKELETON ────────────────────────────────── */
+    #loading { display: none; }
+
+    .skeleton-card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; overflow: hidden;
+    }
+    .skel {
+      background: linear-gradient(90deg, #F1F5F9 25%, #E8EEF7 50%, #F1F5F9 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; } 100% { background-position: -200% 0; }
+    }
+    .skel-dark {
+      background: linear-gradient(90deg, #1A3560 25%, #1E4080 50%, #1A3560 75%);
+      background-size: 200% 100%; animation: shimmer-dark 1.4s infinite; border-radius: 6px;
+    }
+    @keyframes shimmer-dark {
+      0% { background-position: 200% 0; } 100% { background-position: -200% 0; }
+    }
+
+    /* ─── ERROR STATE ─────────────────────────────────────── */
+    #error-state {
+      display: none;
+      background: #FFF8F8; border: 1px solid #FED7D7;
+      border-radius: var(--radius-md); padding: 28px 20px;
+      text-align: center; animation: fadeSlideUp 0.3s ease;
+    }
+    #error-state .error-icon { font-size: 32px; margin-bottom: 10px; }
+    #error-state h3 { font-size: 15px; font-weight: 700; color: #C53030; margin-bottom: 6px; }
+    #error-state p { font-size: 13px; color: #E53E3E; margin-bottom: 16px; }
+
+    .error-retry-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fff; border: 1.5px solid #FEB2B2;
+      border-radius: var(--radius-sm); padding: 8px 16px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      color: #C53030; cursor: pointer; transition: var(--transition);
+    }
+    .error-retry-btn:hover { background: #FFF0F0; border-color: #FC8181; }
+
+    /* ─── RESULT SECTION ──────────────────────────────────── */
+    #result-section {
+      display: none; animation: fadeSlideUp 0.35s ease;
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── STATUS HEADER CARD ──────────────────────────────── */
+    .status-header-card {
+      background: var(--blue-900); border-radius: var(--radius-lg);
+      padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
+    }
+    .status-header-card::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 130px; height: 130px; background: var(--accent);
+      border-radius: 50%; opacity: 0.07;
+    }
+    .tracking-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin-bottom: 4px;
+    }
+    .tracking-number-display {
+      font-family: var(--font-mono); font-size: 17px; font-weight: 600;
+      color: #fff; letter-spacing: 0.04em; margin-bottom: 4px;
+    }
+    /* Customer greeting */
+    .customer-greeting {
+      font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 14px;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .customer-greeting strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+
+    .current-status-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .current-status-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      border-radius: 100px; padding: 6px 12px; transition: var(--transition);
+    }
+    .current-status-badge[data-phase="done"] {
+      background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+    }
+    .current-status-badge[data-phase="done"] .status-badge-text { color: #6EE7B7; }
+    .current-status-badge[data-phase="done"] .status-badge-dot { background: var(--green); }
+    .current-status-badge[data-phase="active"] {
+      background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3);
+    }
+    .current-status-badge[data-phase="active"] .status-badge-text { color: #93C5FD; }
+    .current-status-badge[data-phase="active"] .status-badge-dot { background: var(--accent-light); }
+    .current-status-badge[data-phase="early"] {
+      background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25);
+    }
+    .current-status-badge[data-phase="early"] .status-badge-text { color: #FCD34D; }
+    .current-status-badge[data-phase="early"] .status-badge-dot { background: var(--amber); }
+
+    .status-badge-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-badge-dot.is-pulsing { animation: pulse-dot 2s infinite; }
+    .status-badge-text { font-size: 13px; font-weight: 600; }
+
+    .eta-block { text-align: right; flex-shrink: 0; }
+    .eta-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; text-transform: uppercase; }
+    .eta-value { font-size: 14px; font-weight: 600; color: #fff; }
+    .eta-value.expired { color: #FCA5A5; }
+    .eta-expired-badge {
+      display: inline-block;
+      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+      color: #FCA5A5; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 100px; margin-top: 3px;
+    }
+
+    /* Service tier badge */
+    .service-tier-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.6); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 100px; margin-bottom: 14px;
+    }
+
+    /* ─── INFO ROW ────────────────────────────────────────── */
+    .info-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+    }
+    .info-tile {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px; transition: var(--transition);
+    }
+    .info-tile-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    /* Phase 3: icons on info tiles */
+    .info-tile-label svg { width: 12px; height: 12px; fill: currentColor; opacity: 0.7; }
+    .info-tile-value { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+
+    /* ─── TIMELINE CARD ───────────────────────────────────── */
+    .timeline-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px;
+    }
+    .card-heading {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ─── VERTICAL TIMELINE ───────────────────────────────── */
+    .timeline { display: flex; flex-direction: column; }
+    .timeline-step { display: flex; gap: 14px; position: relative; }
+    .timeline-left {
+      display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 36px;
+    }
+    .step-node {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: var(--transition); position: relative; z-index: 1;
+    }
+    .step-node svg { width: 16px; height: 16px; }
+    .step-node.done { background: var(--green); box-shadow: 0 0 0 4px rgba(16,185,129,0.15); }
+    .step-node.done svg { fill: #fff; stroke: none; }
+    .step-node.active { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); animation: pulse-node 2.5s infinite; }
+    .step-node.active svg { fill: #fff; stroke: none; }
+    @keyframes pulse-node {
+      0%, 100% { box-shadow: 0 0 0 4px var(--accent-glow); }
+      50%       { box-shadow: 0 0 0 9px rgba(37,99,235,0.06); }
+    }
+    .step-node.pending { background: var(--surface-3); border: 2px solid var(--border); }
+    .step-node.pending svg { fill: var(--text-muted); stroke: none; }
+
+    .step-connector {
+      width: 2px; flex: 1; min-height: 20px; background: var(--border);
+      margin: 2px 0; border-radius: 2px;
+    }
+    .step-connector.done { background: var(--green); }
+    .step-connector.active { background: linear-gradient(to bottom, var(--green), var(--accent)); }
+
+    .timeline-right { flex: 1; padding-bottom: 24px; padding-top: 6px; }
+    .timeline-step:last-child .timeline-right { padding-bottom: 0; }
+
+    .step-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 1px; }
+    .step-name-kr { font-family: 'Noto Sans KR', sans-serif; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .step-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .step-time { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .step-time svg { width: 10px; height: 10px; fill: var(--text-muted); }
+    .step-location {
+      font-size: 11px; color: var(--text-secondary);
+      background: var(--surface-2); padding: 2px 8px;
+      border-radius: 100px; border: 1px solid var(--border);
+    }
+    /* History note rendering */
+    .step-note {
+      margin-top: 5px;
+      font-size: 11px; color: var(--text-secondary);
+      background: #FFFBEB; border: 1px solid #FDE68A;
+      border-radius: 5px; padding: 4px 8px;
+      font-style: italic; line-height: 1.4;
+    }
+    .step-pending-label { font-size: 11px; color: var(--text-muted); font-style: italic; }
+    .step-pending-label-next {
+      font-size: 11px; color: var(--accent); font-style: italic; font-weight: 500;
+    }
+
+    /* Active/pending step text color */
+    .timeline-step.is-active .step-name { color: var(--accent); }
+    .timeline-step.is-pending .step-name { color: var(--text-muted); font-weight: 400; }
+    .timeline-step.is-pending .step-name-kr { color: #C5CEE0; }
+
+    /* ─── DELIVERY PHOTO CARD ─────────────────────────────── */
+    .photo-card {
+      background: var(--surface); border: 1px solid #BBF7D0;
+      border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit; transition: var(--transition);
+    }
+    .photo-card:hover { background: #F0FDF4; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .photo-icon {
+      width: 38px; height: 38px; background: rgba(16,185,129,0.1);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .photo-icon svg { width: 18px; height: 18px; fill: var(--green); }
+    .photo-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #059669; margin-bottom: 2px; }
+    .photo-sub { font-size: 12px; color: var(--text-secondary); }
+    .photo-arrow { margin-left: auto; color: var(--green); font-size: 16px; }
+
+    /* ─── COURIER CARD ────────────────────────────────────── */
+    .courier-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    }
+    .courier-info { display: flex; align-items: center; gap: 12px; }
+    .courier-avatar {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    }
+    .courier-avatar svg { width: 20px; height: 20px; fill: var(--accent-light); }
+    .courier-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .courier-sub { font-size: 11px; color: var(--text-muted); }
+    .courier-actions { display: flex; gap: 8px; }
+    .courier-action-btn {
+      width: 36px; height: 36px; border: 1.5px solid var(--border);
+      border-radius: 8px; background: var(--surface-2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); position: relative;
+    }
+    .courier-action-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+    .courier-action-btn svg { width: 15px; height: 15px; stroke: var(--text-secondary); fill: none; stroke-width: 1.8; stroke-linecap: round; }
+
+    /* ─── ACTION BUTTONS ROW ──────────────────────────────── */
+    .result-actions { display: flex; gap: 8px; margin-bottom: 32px; }
+
+    .copy-btn {
+      flex: 1; height: 44px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+
+    /* Share button */
+    .share-btn {
+      height: 44px; padding: 0 16px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+      display: none; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0;
+    }
+    .share-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .share-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+
+    .track-another-btn {
+      flex: 1; height: 44px;
+      background: var(--accent); border: none;
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 600;
+      color: #fff; cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .track-another-btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+    /* ─── DEMO PANEL ──────────────────────────────────────── */
+    .demo-panel {
+      background: linear-gradient(135deg, #F0F4FF, #EEF2FF);
+      border: 1px solid #C7D2FE; border-radius: var(--radius-md);
+      padding: 16px; margin-bottom: 24px; transition: var(--transition);
+    }
+    .demo-panel.hidden { display: none; }
+    .demo-panel-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 10px;
+    }
+    .demo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .demo-chip {
+      background: #fff; border: 1.5px solid #C7D2FE; border-radius: 6px;
+      padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      color: var(--accent); cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .demo-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .demo-chip .chip-status {
+      font-size: 9px; font-weight: 500; color: var(--text-muted);
+      border-left: 1px solid #C7D2FE; padding-left: 6px; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+    }
+    .demo-chip:hover .chip-status { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.3); }
+
+    /* ─── FOOTER ──────────────────────────────────────────── */
+    footer {
+      background: var(--blue-900); padding: 20px; text-align: center; margin-top: auto;
+    }
+    .footer-logo-kr { font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent-light); margin-bottom: 4px; }
+    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+    /* ─── DESKTOP BREAKPOINT ──────────────────────────────── */
+    @media (min-width: 640px) {
+      header { height: 60px; padding: 0 32px; }
+      .hero { padding: 52px 32px 60px; }
+      main { padding: 32px 20px 60px; max-width: 620px; }
+      .logo-en { font-size: 14px; }
+    }
+    @media (min-width: 900px) {
+      main { max-width: 680px; }
+      .search-card { max-width: 560px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── HEADER ─────────────────────────────────────────── -->
+  <header>
+    <div class="logo" onclick="resetToHome()" role="button" tabindex="0" aria-label="Sinsok Delivery Home">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 7H4C2.9 7 2 7.9 2 9v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8 9l-5-3.5V10l5 3.5L17 10v2.5L12 16zm6-9H6l6-4 6 4z"/></svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-kr">신속배송</span>
+        <span class="logo-en">Sinsok Delivery</span>
+      </div>
+    </div>
+    <div class="header-lang">
+      <button class="lang-btn active" onclick="setLang('en', this)">EN</button>
+      <button class="lang-btn" onclick="setLang('kr', this)">한국어</button>
+    </div>
+  </header>
+
+  <!-- ─── HERO ───────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      <span data-i18n="live_tracking">Live Tracking Available</span>
+    </div>
+    <h1 data-i18n="hero_h1">Track Your <span>Package</span></h1>
+    <p class="hero-sub" data-i18n="hero_sub">배송 상태를 실시간으로 확인하세요 · Real-time delivery updates</p>
+
+    <div class="search-card">
+      <label class="search-label" for="trackingInput" data-i18n="input_label">Tracking Number</label>
+      <div class="search-row">
+        <input
+          type="search"
+          id="trackingInput"
+          class="search-input"
+          placeholder="e.g. SS20260101-001"
+          maxlength="40"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="characters"
+          onkeydown="if(event.key==='Enter') trackPackage()"
+        />
+        <button class="search-btn" id="searchBtn" onclick="trackPackage()" aria-label="Track package">
+          <span class="btn-spinner"></span>
+          <svg class="btn-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span data-i18n="track_btn">Track</span>
+        </button>
+      </div>
+      <!-- Recent searches -->
+      <div class="recent-searches" id="recentSearches">
+        <div class="recent-label" data-i18n="recent_label">Recent</div>
+        <div class="recent-chips" id="recentChips"></div>
+      </div>
+      <p class="search-hint" data-i18n="hint">Try a demo: <a onclick="loadDemo()">click sample numbers below ↓</a></p>
+    </div>
+  </div>
+
+  <!-- ─── MAIN ───────────────────────────────────────────── -->
+  <main>
+
+    <!-- DEMO PANEL -->
+    <div class="demo-panel" id="demoPanel">
+      <div class="demo-panel-title" data-i18n="demo_title">📦 Demo Tracking Numbers</div>
+      <div class="demo-chips" id="demoChips"></div>
+    </div>
+
+    <!-- AUTO-REFRESH BAR -->
+    <div id="refresh-bar">
+      <div class="refresh-left">
+        <span class="refresh-dot"></span>
+        <span data-i18n="refresh_label">Auto-refreshing in</span>
+        <strong id="refresh-countdown">30</strong><span>s</span>
+      </div>
+      <button class="refresh-cancel-btn" onclick="cancelRefresh()" data-i18n="refresh_cancel">Cancel</button>
+    </div>
+
+    <!-- LOADING SKELETON -->
+    <div id="loading">
+      <div class="skeleton-card" style="background:var(--blue-900);">
+        <div class="skel-dark" style="height:10px;width:100px;margin-bottom:8px;"></div>
+        <div class="skel-dark" style="height:20px;width:200px;margin-bottom:18px;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <div class="skel-dark" style="height:30px;width:130px;border-radius:100px;"></div>
+          <div class="skel-dark" style="height:30px;width:80px;"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="skel" style="height:54px;"></div>
+          <div class="skel" style="height:54px;"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skel" style="height:10px;width:120px;margin-bottom:20px;"></div>
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1;"><div class="skel" style="height:14px;width:140px;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:80px;"></div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1;"><div class="skel" style="height:14px;width:160px;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:100px;"></div></div>
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div class="skel" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1;"><div class="skel" style="height:14px;width:120px;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:60px;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR (distinct messages per error code) -->
+    <div id="error-state">
+      <div class="error-icon" id="errorIcon">🔍</div>
+      <h3 id="errorTitle">Package Not Found</h3>
+      <p id="errorMsg">Please check the tracking number and try again.</p>
+      <button class="error-retry-btn" onclick="retrySearch()">
+        ← <span data-i18n="retry_btn">Try Again</span>
+      </button>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result-section">
+
+      <!-- Delivered celebration banner (hidden unless delivered) -->
+      <div id="delivered-banner">
+        <div class="banner-check">✅</div>
+        <div class="banner-title" data-i18n="banner_title">Package Delivered!</div>
+        <div class="banner-sub" id="bannerSub">Your package has been successfully delivered.</div>
+      </div>
+
+      <!-- Progress counter -->
+      <div class="progress-counter" id="progressCounter">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="progress-text" id="progressText"><span>0</span> / 6 steps</div>
+      </div>
+
+      <!-- Status Header Card -->
+      <div class="status-header-card">
+        <div class="tracking-label" data-i18n="tracking_no_label">Tracking Number</div>
+        <div class="tracking-number-display" id="displayTrackingNo">—</div>
+        <!-- Customer greeting -->
+        <div class="customer-greeting" id="customerGreeting" style="display:none;"></div>
+        <div class="service-tier-badge" id="serviceTierBadge" style="display:none;">
+          <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:currentColor;opacity:0.7;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span id="serviceTierText">Standard</span>
+        </div>
+        <div class="current-status-row">
+          <div class="current-status-badge" id="statusBadge" data-phase="active">
+            <span class="status-badge-dot is-pulsing" id="statusDot"></span>
+            <span class="status-badge-text" id="currentStatusBadge">—</span>
+          </div>
+          <div class="eta-block">
+            <div class="eta-label" data-i18n="eta_label">Est. Delivery</div>
+            <div class="eta-value" id="etaValue">—</div>
+            <div class="eta-expired-badge" id="etaExpiredBadge" style="display:none;" data-i18n="eta_expired">Delayed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Row (Phase 3: icons) -->
+      <div class="info-row">
+        <div class="info-tile">
+          <div class="info-tile-label">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm.5 5v5.75l4 2.37-.75 1.23L11 13.5V7h1.5z"/></svg>
+            <span data-i18n="last_update">Last Update</span>
+          </div>
+          <div class="info-tile-value" id="lastUpdate">—</div>
+        </div>
+        <div class="info-tile">
+          <div class="info-tile-label">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span data-i18n="location_label">Location</span>
+          </div>
+          <div class="info-tile-value" id="currentLocation">—</div>
+        </div>
+      </div>
+
+      <!-- Timeline Card -->
+      <div class="timeline-card">
+        <div class="card-heading" data-i18n="delivery_progress">Delivery Progress</div>
+        <div class="timeline" id="timelineContainer"></div>
+      </div>
+
+      <!-- Delivery Photo -->
+      <a class="photo-card" id="photoCard" href="#" target="_blank" rel="noopener" style="display:none;">
+        <div class="photo-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        </div>
+        <div>
+          <div class="photo-label" data-i18n="proof_label">Proof of Delivery</div>
+          <div class="photo-sub" data-i18n="proof_sub">Tap to view delivery photo</div>
+        </div>
+        <span class="photo-arrow">→</span>
+      </a>
+
+      <!-- Courier Card -->
+      <div class="courier-card">
+        <div class="courier-info">
+          <div class="courier-avatar">
+            <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          </div>
+          <div>
+            <div class="courier-name" data-i18n="courier_name">Sinsok Express</div>
+            <div class="courier-sub" id="courierSub" data-i18n="courier_sub">Standard Delivery</div>
+          </div>
+        </div>
+        <div class="courier-actions">
+          <button class="courier-action-btn" title="Copy tracking link" onclick="copyLink()" aria-label="Copy tracking link">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="result-actions">
+        <button class="copy-btn" onclick="copyLink()">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          <span data-i18n="copy_link">Copy Link</span>
+        </button>
+        <!-- Web Share API button (shown on mobile via JS) -->
+        <button class="share-btn" id="shareBtn" onclick="shareLink()">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span data-i18n="share_btn">Share</span>
+        </button>
+        <button class="track-another-btn" onclick="resetToHome()" aria-label="Track another package">
+          <span data-i18n="track_another">Track Another</span>
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </div>
+
+    </div><!-- /#result-section -->
+
+  </main>
+
+  <!-- ─── FOOTER ─────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-logo-kr">신속배송 · Sinsok Delivery</div>
+    <div class="footer-copy" id="footerCopy"></div>
+  </footer>
+
+  <script>
+    /* ══════════════════════════════════════════════════════
+       CONFIGURATION — EDIT BEFORE DEPLOYING
+    ══════════════════════════════════════════════════════ */
+    const GAS_URL       = 'YOUR_GAS_WEB_APP_URL_HERE';
+    const USE_MOCK_DATA = true;  // Set to false when GAS_URL is set
+
+    // Auto-refresh interval in seconds (set to 0 to disable)
+    const AUTO_REFRESH_SECONDS = 30;
+
+    /* ══════════════════════════════════════════════════════
+       Dynamic footer year
+    ══════════════════════════════════════════════════════ */
+    document.getElementById('footerCopy').textContent =
+      '© ' + new Date().getFullYear() + ' Sinsok Logistics Co., Ltd. · 서울특별시 강남구';
+
+    /* ══════════════════════════════════════════════════════
+       i18n STRINGS
+    ══════════════════════════════════════════════════════ */
+    const STRINGS = {
+      en: {
+        live_tracking:    'Live Tracking Available',
+        hero_h1:          'Track Your Package',
+        hero_sub:         '배송 상태를 실시간으로 확인하세요 · Real-time delivery updates',
+        input_label:      'Tracking Number',
+        track_btn:        'Track',
+        hint:             'Try a demo: <a onclick="loadDemo()">click sample numbers below ↓</a>',
+        demo_title:       '📦 Demo Tracking Numbers',
+        loading:          'Searching for your package...',
+        // Error messages per code
+        err_not_found_title:   'Package Not Found',
+        err_not_found_msg:     'No package found with that tracking number. Please double-check and try again.',
+        err_invalid_title:     'Invalid Format',
+        err_invalid_msg:       'That doesn\'t look like a valid tracking number. Format: SS20260101-001',
+        err_network_title:     'Connection Error',
+        err_network_msg:       'Could not reach the tracking server. Please check your connection and try again.',
+        err_generic_title:     'Something Went Wrong',
+        err_generic_msg:       'An unexpected error occurred. Please try again in a moment.',
+        retry_btn:        'Try Again',
+        tracking_no_label:'Tracking Number',
+        eta_label:        'Est. Delivery',
+        eta_expired:      'Delayed',
+        last_update:      'Last Update',
+        location_label:   'Current Location',
+        delivery_progress:'Delivery Progress',
+        courier_name:     'Sinsok Express',
+        courier_sub:      'Standard Delivery',
+        copy_link:        'Copy Link',
+        share_btn:        'Share',
+        track_another:    'Track Another',
+        proof_label:      'Proof of Delivery',
+        proof_sub:        'Tap to view delivery photo',
+        recent_label:     'Recent',
+        refresh_label:    'Auto-refreshing in',
+        refresh_cancel:   'Cancel',
+        banner_title:     'Package Delivered!',
+        greeting_prefix:  'Hi',
+        greeting_suffix:  ', your package status:',
+        step_next_label:  'Expected next step',
+        steps: {
+          order_received:     { name: 'Order Received',     kr: '주문 접수' },
+          preparing_shipment: { name: 'Preparing Shipment', kr: '상품 준비 중' },
+          shipment_completed: { name: 'Shipment Completed', kr: '배송 준비 완료' },
+          in_transit:         { name: 'In Transit',         kr: '배송 중' },
+          out_for_delivery:   { name: 'Out for Delivery',   kr: '배달 출발' },
+          delivered:          { name: 'Delivered',          kr: '배달 완료' },
+        }
+      },
+      kr: {
+        live_tracking:    '실시간 배송 조회 가능',
+        hero_h1:          '배송 조회',
+        hero_sub:         'Real-time delivery updates · 지금 바로 확인하세요',
+        input_label:      '운송장 번호',
+        track_btn:        '조회',
+        hint:             '샘플 번호로 체험: <a onclick="loadDemo()">아래 번호 클릭 ↓</a>',
+        demo_title:       '📦 샘플 운송장 번호',
+        loading:          '배송 정보를 검색하고 있습니다...',
+        err_not_found_title:  '운송장을 찾을 수 없습니다',
+        err_not_found_msg:    '해당 운송장 번호가 없습니다. 다시 확인해 주세요.',
+        err_invalid_title:    '잘못된 형식',
+        err_invalid_msg:      '운송장 번호 형식이 올바르지 않습니다. 형식: SS20260101-001',
+        err_network_title:    '연결 오류',
+        err_network_msg:      '서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.',
+        err_generic_title:    '오류가 발생했습니다',
+        err_generic_msg:      '잠시 후 다시 시도해 주세요.',
+        retry_btn:        '다시 시도',
+        tracking_no_label:'운송장 번호',
+        eta_label:        '배송 예정일',
+        eta_expired:      '지연',
+        last_update:      '최종 업데이트',
+        location_label:   '현재 위치',
+        delivery_progress:'배송 현황',
+        courier_name:     '신속 익스프레스',
+        courier_sub:      '일반 배송',
+        copy_link:        '링크 복사',
+        share_btn:        '공유',
+        track_another:    '다른 배송 조회',
+        proof_label:      '배송 완료 증명',
+        proof_sub:        '배송 사진 보기',
+        recent_label:     '최근 조회',
+        refresh_label:    '자동 새로고침',
+        refresh_cancel:   '취소',
+        banner_title:     '배송 완료!',
+        greeting_prefix:  '안녕하세요',
+        greeting_suffix:  '님, 배송 현황:',
+        step_next_label:  '다음 예상 단계',
+        steps: {
+          order_received:     { name: '주문 접수',       kr: 'Order Received' },
+          preparing_shipment: { name: '상품 준비 중',    kr: 'Preparing Shipment' },
+          shipment_completed: { name: '배송 준비 완료',  kr: 'Shipment Completed' },
+          in_transit:         { name: '배송 중',         kr: 'In Transit' },
+          out_for_delivery:   { name: '배달 출발',       kr: 'Out for Delivery' },
+          delivered:          { name: '배달 완료',       kr: 'Delivered' },
+        }
+      }
+    };
+
+    let currentLang = 'en';
+    function t(key) { return STRINGS[currentLang][key] || STRINGS['en'][key] || key; }
+
+    let _lastResult = null;
+
+    function setLang(lang, btn) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyI18n();
+      // Fix: re-render demo chips in correct language
+      buildDemoChips();
+      if (_lastResult && document.getElementById('result-section').style.display !== 'none') {
+        renderResult(_lastResult);
+      }
+    }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const val = STRINGS[currentLang][key];
+        if (val !== undefined) el.innerHTML = val;
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════
+       STEP DEFINITIONS
+    ══════════════════════════════════════════════════════ */
+    const ALL_STEPS = [
+      'order_received', 'preparing_shipment', 'shipment_completed',
+      'in_transit', 'out_for_delivery', 'delivered',
+    ];
+
+    const STEP_ICONS = {
+      order_received:     `<svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      preparing_shipment: `<svg viewBox="0 0 24 24"><path d="M5 3h14l1 7H4L5 3zM4 10h16l-1 9a2 2 0 01-2 2H7a2 2 0 01-2-2L4 10z" fill="currentColor"/></svg>`,
+      shipment_completed: `<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" fill="currentColor"/></svg>`,
+      in_transit:         `<svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zm15 4h4l3 3v6h-7V7z" fill="currentColor"/><circle cx="5.5" cy="18.5" r="2.5" fill="currentColor"/><circle cx="18.5" cy="18.5" r="2.5" fill="currentColor"/></svg>`,
+      out_for_delivery:   `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>`,
+      delivered:          `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/></svg>`,
+    };
+
+    /* ══════════════════════════════════════════════════════
+       MOCK DATA — Phase 3: no via.placeholder.com
+    ══════════════════════════════════════════════════════ */
+    const POD_PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">' +
+      '<rect width="600" height="400" fill="#F0FDF4"/>' +
+      '<rect x="230" y="140" width="140" height="120" rx="8" fill="#BBF7D0"/>' +
+      '<path d="M260 180 l30 30 l60-60" stroke="#059669" stroke-width="10" stroke-linecap="round" fill="none"/>' +
+      '<text x="300" y="310" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#6B7280">Proof of Delivery</text>' +
+      '</svg>'
+    );
+
+    const MOCK_DB = {
+      'SS20260101-001': {
+        trackingNumber: 'SS20260101-001',
+        customerName: 'Kim Jisoo',
+        status: 'delivered',
+        location: 'Seoul, Gangnam-gu',
+        lastUpdated: 'Jan 4, 2026 14:32',
+        eta: 'Jan 4, 2026',
+        etaExpired: false,
+        serviceTier: 'Express',
+        deliveryPhoto: POD_PLACEHOLDER,
+        history: [
+          { step: 'order_received',     time: 'Jan 1, 09:15', location: 'Seoul Warehouse',         note: '' },
+          { step: 'preparing_shipment', time: 'Jan 1, 11:40', location: 'Seoul Warehouse',         note: 'Fragile sticker applied' },
+          { step: 'shipment_completed', time: 'Jan 2, 08:05', location: 'Seoul Sorting Hub',       note: '' },
+          { step: 'in_transit',         time: 'Jan 2, 14:22', location: 'Gyeonggi Transit Hub',    note: '' },
+          { step: 'out_for_delivery',   time: 'Jan 4, 09:55', location: 'Seoul, Gangnam-gu',       note: '' },
+          { step: 'delivered',          time: 'Jan 4, 14:32', location: 'Seoul, Gangnam-gu',       note: 'Left at front door' },
+        ]
+      },
+      'SS20260105-042': {
+        trackingNumber: 'SS20260105-042',
+        customerName: 'Park Minjun',
+        status: 'out_for_delivery',
+        location: 'Busan, Haeundae-gu',
+        lastUpdated: 'Jan 6, 2026 09:10',
+        eta: 'Jan 6, 2026',
+        etaExpired: false,
+        serviceTier: 'Standard',
+        deliveryPhoto: null,
+        history: [
+          { step: 'order_received',     time: 'Jan 5, 10:00', location: 'Busan Warehouse',         note: '' },
+          { step: 'preparing_shipment', time: 'Jan 5, 13:30', location: 'Busan Warehouse',         note: '' },
+          { step: 'shipment_completed', time: 'Jan 5, 17:00', location: 'Busan Hub',               note: '' },
+          { step: 'in_transit',         time: 'Jan 5, 21:00', location: 'Busan Sorting Center',    note: '' },
+          { step: 'out_for_delivery',   time: 'Jan 6, 09:10', location: 'Busan, Haeundae-gu',      note: 'Attempted delivery — no one home, will retry' },
+        ]
+      },
+      'SS20260107-099': {
+        trackingNumber: 'SS20260107-099',
+        customerName: 'Lee Sunhee',
+        status: 'in_transit',
+        location: 'Daejeon Transit Hub',
+        lastUpdated: 'Jan 7, 2026 16:45',
+        eta: 'Jan 8, 2026',
+        etaExpired: false,
+        serviceTier: 'Economy',
+        deliveryPhoto: null,
+        history: [
+          { step: 'order_received',     time: 'Jan 7, 08:00', location: 'Incheon Warehouse', note: '' },
+          { step: 'preparing_shipment', time: 'Jan 7, 11:00', location: 'Incheon Warehouse', note: '' },
+          { step: 'shipment_completed', time: 'Jan 7, 14:00', location: 'Incheon Hub',       note: '' },
+          { step: 'in_transit',         time: 'Jan 7, 16:45', location: 'Daejeon Transit Hub', note: '' },
+        ]
+      },
+      'SS20260108-007': {
+        trackingNumber: 'SS20260108-007',
+        customerName: 'Choi Yuna',
+        status: 'order_received',
+        location: 'Jeju Warehouse',
+        lastUpdated: 'Jan 8, 2026 10:20',
+        eta: 'Jan 10, 2026',
+        etaExpired: false,
+        serviceTier: 'Standard',
+        deliveryPhoto: null,
+        history: [
+          { step: 'order_received', time: 'Jan 8, 10:20', location: 'Jeju Warehouse', note: '' },
+        ]
+      },
+    };
+
+    const DEMO_CHIPS_DATA = [
+      { number: 'SS20260101-001', statusKey: 'delivered' },
+      { number: 'SS20260105-042', statusKey: 'out_for_delivery' },
+      { number: 'SS20260107-099', statusKey: 'in_transit' },
+      { number: 'SS20260108-007', statusKey: 'order_received' },
+    ];
+
+    function getMockData(num) {
+      return MOCK_DB[num.toUpperCase()] || MOCK_DB[num] || null;
+    }
+
+    // Fix: use t() so language is respected
+    function buildDemoChips() {
+      const container = document.getElementById('demoChips');
+      const steps = t('steps');
+      container.innerHTML = DEMO_CHIPS_DATA.map(d => {
+        const label = steps[d.statusKey]?.name || d.statusKey;
+        return `<div class="demo-chip" onclick="fillAndTrack('${d.number}')">
+          ${d.number}<span class="chip-status">${label}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function loadDemo() { fillAndTrack(DEMO_CHIPS_DATA[0].number); }
+
+    function fillAndTrack(num) {
+      document.getElementById('trackingInput').value = num;
+      trackPackage();
+    }
+
+    /* ══════════════════════════════════════════════════════
+       RECENT SEARCHES (localStorage, last 3)
+    ══════════════════════════════════════════════════════ */
+    const RECENT_KEY = 'sinsok_recent';
+    const RECENT_MAX = 3;
+
+    function getRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch(_) { return []; }
+    }
+
+    function saveRecent(num) {
+      try {
+        let list = getRecent().filter(n => n !== num);
+        list.unshift(num);
+        if (list.length > RECENT_MAX) list = list.slice(0, RECENT_MAX);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+        renderRecentChips();
+      } catch(_) {}
+    }
+
+    function renderRecentChips() {
+      const list = getRecent();
+      const wrap = document.getElementById('recentSearches');
+      const chips = document.getElementById('recentChips');
+      if (list.length === 0) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'block';
+      chips.innerHTML = list.map(num =>
+        `<div class="recent-chip" onclick="fillAndTrack('${num}')">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-5.11L1 10"/></svg>
+          ${num}
+        </div>`
+      ).join('');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       INPUT VALIDATION
+    ══════════════════════════════════════════════════════ */
+    function sanitizeInput(raw) {
+      return raw.replace(/[^A-Za-z0-9\-]/g, '').substring(0, 40).toUpperCase();
+    }
+
+    /* ══════════════════════════════════════════════════════
+       DEBOUNCE / LOADING LOCK
+    ══════════════════════════════════════════════════════ */
+    let _isTracking = false;
+
+    function setTrackingLock(locked) {
+      _isTracking = locked;
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = locked;
+      btn.classList.toggle('loading', locked);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       AUTO-REFRESH
+    ══════════════════════════════════════════════════════ */
+    let _refreshTimer = null;
+    let _refreshCountdown = 0;
+    let _refreshTickTimer = null;
+    let _activeTrackingNum = null;
+
+    function startRefresh(trackingNum) {
+      if (!AUTO_REFRESH_SECONDS || AUTO_REFRESH_SECONDS <= 0) return;
+      cancelRefresh();
+      _activeTrackingNum = trackingNum;
+      _refreshCountdown = AUTO_REFRESH_SECONDS;
+      document.getElementById('refresh-bar').style.display = 'flex';
+      document.getElementById('refresh-countdown').textContent = _refreshCountdown;
+
+      _refreshTickTimer = setInterval(() => {
+        _refreshCountdown--;
+        document.getElementById('refresh-countdown').textContent = _refreshCountdown;
+        if (_refreshCountdown <= 0) {
+          cancelRefresh();
+          silentRefresh(_activeTrackingNum);
+        }
+      }, 1000);
+    }
+
+    function cancelRefresh() {
+      clearInterval(_refreshTickTimer);
+      clearTimeout(_refreshTimer);
+      _refreshTickTimer = null;
+      _refreshTimer = null;
+      document.getElementById('refresh-bar').style.display = 'none';
+    }
+
+    function silentRefresh(trackingNum) {
+      if (!trackingNum) return;
+      if (USE_MOCK_DATA) {
+        const data = getMockData(trackingNum);
+        if (data) {
+          renderResult(data);
+          startRefresh(trackingNum);
+        }
+      } else {
+        fetchFromGAS(trackingNum, /* silent= */ true);
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MAIN TRACK FUNCTION
+    ══════════════════════════════════════════════════════ */
+    function trackPackage() {
+      if (_isTracking) return; // debounce
+
+      const raw   = document.getElementById('trackingInput').value.trim();
+      const input = sanitizeInput(raw);
+
+      if (!input) {
+        const el = document.getElementById('trackingInput');
+        el.focus();
+        el.style.borderColor = '#EF4444';
+        el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.15)';
+        setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1400);
+        return;
+      }
+
+      cancelRefresh();
+      hideAll();
+      setTrackingLock(true);
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('demoPanel').classList.add('hidden');
+
+      if (USE_MOCK_DATA) {
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+          setTrackingLock(false);
+          const data = getMockData(input);
+          if (data) {
+            renderResult(data);
+            saveRecent(input);
+            startRefresh(input);
+          } else {
+            showError('NOT_FOUND');
+          }
+        }, 800);
+      } else {
+        fetchFromGAS(input, false);
+      }
+    }
+
+    async function fetchFromGAS(trackingNumber, silent = false) {
+      if (!silent) setTrackingLock(true);
+      try {
+        // Phase 2 Backend: ping check
+        const url = `${GAS_URL}?trackingNumber=${encodeURIComponent(trackingNumber)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        document.getElementById('loading').style.display = 'none';
+        setTrackingLock(false);
+
+        if (data.error) {
+          showError(data.error);
+        } else if (data && data.trackingNumber) {
+          renderResult(data);
+          saveRecent(trackingNumber);
+          startRefresh(trackingNumber);
+        } else {
+          showError('NOT_FOUND');
+        }
+      } catch (err) {
+        document.getElementById('loading').style.display = 'none';
+        setTrackingLock(false);
+        showError('NETWORK_ERROR');
+      }
+    }
+
+    function hideAll() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-state').style.display = 'none';
+      document.getElementById('result-section').style.display = 'none';
+    }
+
+    /* Phase 1: distinct error messages per error code */
+    function showError(errorCode) {
+      const codeMap = {
+        'NOT_FOUND':      { icon: '🔍', titleKey: 'err_not_found_title', msgKey: 'err_not_found_msg' },
+        'INVALID_FORMAT': { icon: '⚠️', titleKey: 'err_invalid_title',   msgKey: 'err_invalid_msg'   },
+        'NETWORK_ERROR':  { icon: '📡', titleKey: 'err_network_title',   msgKey: 'err_network_msg'   },
+      };
+      const cfg = codeMap[errorCode] || { icon: '❌', titleKey: 'err_generic_title', msgKey: 'err_generic_msg' };
+
+      document.getElementById('errorIcon').textContent  = cfg.icon;
+      document.getElementById('errorTitle').textContent = t(cfg.titleKey);
+      document.getElementById('errorMsg').textContent   = t(cfg.msgKey);
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('demoPanel').classList.remove('hidden');
+    }
+
+    function retrySearch() {
+      document.getElementById('error-state').style.display = 'none';
+      document.getElementById('trackingInput').focus();
+      document.getElementById('trackingInput').select();
+    }
+
+    function resetToHome() {
+      cancelRefresh();
+      document.getElementById('trackingInput').value = '';
+      _lastResult = null;
+      _activeTrackingNum = null;
+      hideAll();
+      document.getElementById('demoPanel').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ══════════════════════════════════════════════════════
+       RENDER RESULT
+    ══════════════════════════════════════════════════════ */
+    function renderResult(data) {
+      _lastResult = data;
+
+      const steps          = t('steps');
+      const currentStepIdx = ALL_STEPS.indexOf(data.status);
+      const isDelivered    = data.status === 'delivered';
+      const isEarly        = ['order_received', 'preparing_shipment'].includes(data.status);
+
+      // ── Delivered banner
+      const banner = document.getElementById('delivered-banner');
+      if (isDelivered) {
+        banner.style.display = 'block';
+        const sub = document.getElementById('bannerSub');
+        sub.textContent = data.customerName
+          ? (currentLang === 'kr'
+              ? data.customerName + '님의 소포가 성공적으로 배달되었습니다.'
+              : data.customerName + '\'s package has been successfully delivered.')
+          : (currentLang === 'kr' ? '소포가 성공적으로 배달되었습니다.' : 'Your package has been successfully delivered.');
+      } else {
+        banner.style.display = 'none';
+      }
+
+      // ── Progress counter
+      const completedSteps = isDelivered ? ALL_STEPS.length : Math.max(0, currentStepIdx);
+      const totalSteps = ALL_STEPS.length;
+      const pct = Math.round((completedSteps / totalSteps) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      const ptEl = document.getElementById('progressText');
+      ptEl.innerHTML = `<span>${completedSteps}</span> / ${totalSteps} ${currentLang === 'kr' ? '단계' : 'steps'}`;
+
+      // ── Status header card
+      document.getElementById('displayTrackingNo').textContent = data.trackingNumber;
+      document.getElementById('currentStatusBadge').textContent = steps[data.status]?.name || data.status;
+
+      // Phase 1: Customer greeting
+      const greetingEl = document.getElementById('customerGreeting');
+      if (data.customerName) {
+        greetingEl.style.display = 'block';
+        greetingEl.innerHTML = `${t('greeting_prefix')} <strong>${data.customerName}</strong>${t('greeting_suffix')}`;
+      } else {
+        greetingEl.style.display = 'none';
+      }
+
+      // Dynamic badge color
+      const badge   = document.getElementById('statusBadge');
+      const dot     = document.getElementById('statusDot');
+      const phase   = isDelivered ? 'done' : isEarly ? 'early' : 'active';
+      badge.setAttribute('data-phase', phase);
+      dot.classList.toggle('is-pulsing', !isDelivered);
+
+      // ETA
+      const etaEl      = document.getElementById('etaValue');
+      const etaExpBadge = document.getElementById('etaExpiredBadge');
+      etaEl.textContent = data.eta || '—';
+      etaEl.classList.toggle('expired', !!data.etaExpired);
+      etaExpBadge.style.display = data.etaExpired ? 'inline-block' : 'none';
+
+      // Info tiles
+      document.getElementById('lastUpdate').textContent    = data.lastUpdated || '—';
+      document.getElementById('currentLocation').textContent = data.location || '—';
+
+      // Service tier badge
+      const tierBadge = document.getElementById('serviceTierBadge');
+      const tierText  = document.getElementById('serviceTierText');
+      if (data.serviceTier && data.serviceTier !== 'Standard') {
+        tierText.textContent   = data.serviceTier;
+        tierBadge.style.display = 'inline-flex';
+        document.getElementById('courierSub').textContent = data.serviceTier + ' Delivery';
+      } else {
+        tierBadge.style.display = 'none';
+        document.getElementById('courierSub').textContent = t('courier_sub');
+      }
+
+      // Delivery photo
+      const photoCard = document.getElementById('photoCard');
+      if (data.deliveryPhoto) {
+        photoCard.href         = data.deliveryPhoto;
+        photoCard.style.display = 'flex';
+      } else {
+        photoCard.style.display = 'none';
+      }
+
+      // ── Timeline (Phase 1: fix innerHTML+= → insertAdjacentHTML, render notes)
+      const container = document.getElementById('timelineContainer');
+      container.innerHTML = ''; // clear once
+
+      ALL_STEPS.forEach((stepKey, idx) => {
+        const isDone    = idx < currentStepIdx;
+        const isActive  = idx === currentStepIdx;
+        const isPending = idx > currentStepIdx;
+        const isLast    = idx === ALL_STEPS.length - 1;
+        const isNextStep = idx === currentStepIdx + 1;
+
+        const histEntry = (data.history || []).find(h => h.step === stepKey);
+        const nodeClass  = isDone ? 'done' : isActive ? 'active' : 'pending';
+        const stepClass  = isDone ? 'is-done' : isActive ? 'is-active' : 'is-pending';
+        const connClass  = isDone ? 'done' : isActive ? 'active' : '';
+        const stepInfo   = steps[stepKey] || { name: stepKey, kr: '' };
+
+        let metaHTML = '';
+        if (histEntry) {
+          const noteHTML = histEntry.note
+            ? `<div class="step-note">💬 ${escapeHTML(histEntry.note)}</div>`
+            : '';
+          metaHTML = `<div class="step-meta">
+            <div class="step-time">
+              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm.5 5v5.75l4 2.37-.75 1.23L11 13.5V7h1.5z" fill="currentColor"/></svg>
+              ${escapeHTML(histEntry.time)}
+            </div>
+            ${histEntry.location ? `<span class="step-location">${escapeHTML(histEntry.location)}</span>` : ''}
+          </div>${noteHTML}`;
+        } else if (isNextStep && !isDelivered) {
+          metaHTML = `<div class="step-pending-label-next">${t('step_next_label')}</div>`;
+        } else if (isPending) {
+          metaHTML = `<div class="step-pending-label">—</div>`;
+        }
+
+        const connectorHTML = isLast ? '' : `<div class="step-connector ${connClass}"></div>`;
+
+        // Phase 1 fix: use insertAdjacentHTML instead of innerHTML +=
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div class="timeline-step ${stepClass}">
+            <div class="timeline-left">
+              <div class="step-node ${nodeClass}">${STEP_ICONS[stepKey]}</div>
+              ${connectorHTML}
+            </div>
+            <div class="timeline-right">
+              <div class="step-name">${escapeHTML(stepInfo.name)}</div>
+              <div class="step-name-kr">${escapeHTML(stepInfo.kr)}</div>
+              ${metaHTML}
+            </div>
+          </div>`;
+        container.insertAdjacentHTML('beforeend', div.innerHTML);
+      });
+
+      document.getElementById('result-section').style.display = 'block';
+
+      // Web Share API: show share button if supported
+      const shareBtn = document.getElementById('shareBtn');
+      if (navigator.share) {
+        shareBtn.style.display = 'flex';
+      }
+
+      setTimeout(() => {
+        document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+
+    /* XSS-safe escape */
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       COPY LINK + WEB SHARE API
+    ══════════════════════════════════════════════════════ */
+    function getTrackingURL() {
+      const num = document.getElementById('trackingInput').value.trim();
+      return `${window.location.href.split('?')[0]}?track=${encodeURIComponent(num)}`;
+    }
+
+    function copyLink() {
+      const url = getTrackingURL();
+      const doFallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.cssText = 'position:fixed;opacity:0;';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); showCopied(); } catch (_) {}
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(showCopied).catch(doFallback);
+      } else {
+        doFallback();
+      }
+    }
+
+    function shareLink() {
+      const num = document.getElementById('trackingInput').value.trim();
+      const url = getTrackingURL();
+      if (navigator.share) {
+        navigator.share({
+          title: 'Track my Sinsok package',
+          text: `Track package ${num} with Sinsok Delivery`,
+          url,
+        }).catch(() => {}); // user cancel is fine
+      } else {
+        copyLink(); // fallback
+      }
+    }
+
+    function showCopied() {
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M20 6L9 17l-5-5"/></svg> Copied!`;
+        btn.style.color = 'var(--green)';
+        btn.style.borderColor = 'var(--green)';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════
+       URL PARAM — auto-track on load
+    ══════════════════════════════════════════════════════ */
+    function checkURLParam() {
+      const params = new URLSearchParams(window.location.search);
+      const num    = params.get('track');
+      if (num) {
+        const sanitized = sanitizeInput(num);
+        if (sanitized) {
+          document.getElementById('trackingInput').value = sanitized;
+          trackPackage();
+        }
+      }
+    }
+
+    window.addEventListener('popstate', checkURLParam);
+
+    /* ══════════════════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════════════════ */
+    buildDemoChips();
+    renderRecentChips();
+    checkURLParam();
+
+  </script>
+</body>
+</html>

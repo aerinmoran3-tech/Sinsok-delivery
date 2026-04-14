@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets — never commit your GAS URL to a public repo
+# (it's embedded in index.html — keep the repo private or use env substitution)
