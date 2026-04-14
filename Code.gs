@@ -99,9 +99,14 @@ function doGet(e) {
     if ((params.adminKey || '') !== ADMIN_KEY) {
       return buildResponse({ error: 'UNAUTHORIZED', message: 'Invalid admin key.' });
     }
-    if (params.action === 'createOrder')  return handleCreateOrder(params);
-    if (params.action === 'updateStatus') return handleUpdateStatus(params);
-    if (params.action === 'lookupOrder')  return handleLookupOrder(params);
+    try {
+      if (params.action === 'createOrder')  return handleCreateOrder(params);
+      if (params.action === 'updateStatus') return handleUpdateStatus(params);
+      if (params.action === 'lookupOrder')  return handleLookupOrder(params);
+    } catch (err) {
+      writeLog('ERROR', 'adminAction', params.action + ' threw: ' + err.message);
+      return buildResponse({ error: 'SERVER_ERROR', message: err.message });
+    }
   }
 
   // ── Rate limiting
@@ -614,7 +619,11 @@ function handleCreateOrder(params) {
     packageContents,
     deliveryPhoto:  null,
   };
-  sendConfirmationEmail(orderData);
+  try {
+    sendConfirmationEmail(orderData);
+  } catch (emailErr) {
+    writeLog('ERROR', 'handleCreateOrder', 'Email failed (order still created): ' + emailErr.message);
+  }
 
   writeLog('INFO', 'handleCreateOrder', 'Created: ' + trackingNumber + ' for ' + email);
   return buildResponse({ success: true, trackingNumber });

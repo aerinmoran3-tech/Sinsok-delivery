@@ -443,7 +443,16 @@
       const url = new URL(GAS_URL);
       url.searchParams.set('adminKey', ADMIN_KEY);
       Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') url.searchParams.set(k, v); });
-      return fetch(url.toString()).then(r => r.json());
+      return fetch(url.toString())
+        .then(r => r.text())
+        .then(text => {
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            // GAS returned HTML (uncaught exception or not redeployed yet)
+            throw new Error('GAS returned a non-JSON response — make sure Code.gs is saved and redeployed with a New Version.');
+          }
+        });
     }
 
     /* ── STATUS LABELS ────────────────────────────────── */
@@ -492,9 +501,9 @@
             showError('createError', res.message || res.error || 'Something went wrong. Please try again.');
           }
         })
-        .catch(() => {
+        .catch(err => {
           setLoading(btn, false);
-          showError('createError', 'Could not reach the server. Check your connection and try again.');
+          showError('createError', err.message || 'Could not reach the server. Check your connection.');
         });
     }
 
@@ -554,9 +563,9 @@
             document.getElementById('updateForm').classList.add('show');
           }
         })
-        .catch(() => {
+        .catch(err => {
           spinner.style.display = 'none'; btnText.style.display = 'block'; btn.disabled = false;
-          showError('lookupError', 'Could not reach the server. Check your connection.');
+          showError('lookupError', err.message || 'Could not reach the server. Check your connection.');
         });
     }
 
@@ -587,9 +596,9 @@
             showError('updateError', res.message || res.error || 'Update failed. Please try again.');
           }
         })
-        .catch(() => {
+        .catch(err => {
           setLoading(btn, false);
-          showError('updateError', 'Could not reach the server. Check your connection.');
+          showError('updateError', err.message || 'Could not reach the server. Check your connection.');
         });
     }
 
