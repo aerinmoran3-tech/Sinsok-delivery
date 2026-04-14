@@ -22,7 +22,7 @@ const LOG_SHEET     = 'Logs';
 const COMPANY_NAME  = '신속배송 · Sinsok Delivery';
 const COMPANY_KR    = '신속배송';
 const BRAND_COLOR   = '#2563EB';
-const SITE_URL      = 'YOUR_NETLIFY_SITE_URL_HERE'; // ← Replace with e.g. https://your-app.netlify.app
+const SITE_URL      = 'https://sinsokdelivery.netlify.app';
 
 // ─── RATE LIMITING ───────────────────────────────────────────────
 // Maximum requests per IP per minute window.
