@@ -20,6 +20,13 @@ const ADMIN_KEY = 'sinsok-admin-2026';
 // ▶ REQUIRED: Set SITE_URL to your live Netlify domain before deploying.
 //   Example: 'https://your-app-name.netlify.app'
 //   This is used in email notifications so customers can click to track.
+//
+// ▶ REQUIRED (standalone script): Set SPREADSHEET_ID to your Google Sheet ID.
+//   Find it in the sheet URL: docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
+//   Leave blank only if this script is opened via Extensions → Apps Script
+//   from inside the sheet (container-bound).
+const SPREADSHEET_ID = '';
+
 const SHEET_NAME    = 'Tracking';
 const HISTORY_SHEET = 'History';
 const LOG_SHEET     = 'Logs';
@@ -73,6 +80,16 @@ const STATUS_LABELS = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+//  getSpreadsheet — returns the bound or standalone spreadsheet
+// ═══════════════════════════════════════════════════════════════
+function getSpreadsheet() {
+  if (SPREADSHEET_ID) {
+    return SpreadsheetApp.openById(SPREADSHEET_ID);
+  }
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  doGet — READ tracking data
 // ═══════════════════════════════════════════════════════════════
 function doGet(e) {
@@ -81,7 +98,7 @@ function doGet(e) {
   // ── Health / config ping
   if (params.action === 'ping') {
     const configOk = SITE_URL !== 'YOUR_SITE_URL_HERE';
-    const sheetOk  = !!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const sheetOk  = !!getSpreadsheet().getSheetByName(SHEET_NAME);
     return buildResponse({
       ok:       configOk && sheetOk,
       version:  VERSION,
@@ -201,7 +218,7 @@ function checkRateLimit(e) {
 //  getTrackingData — reads sheet row, builds response
 // ═══════════════════════════════════════════════════════════════
 function getTrackingData(trackingNumber) {
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss    = getSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) { writeLog('ERROR', 'getTrackingData', 'Sheet "' + SHEET_NAME + '" not found'); return null; }
 
@@ -247,7 +264,7 @@ function getTrackingData(trackingNumber) {
 //  NOTE: note field (col 5) is now included in the response.
 // ═══════════════════════════════════════════════════════════════
 function getHistoryFromSheet(trackingNumber) {
-  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const ss        = getSpreadsheet();
   const histSheet = ss.getSheetByName(HISTORY_SHEET);
 
   if (histSheet) {
@@ -271,7 +288,7 @@ function getHistoryFromSheet(trackingNumber) {
   }
 
   // Synthesize plausible history as fallback (no History tab)
-  const mainSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const mainSheet = getSpreadsheet().getSheetByName(SHEET_NAME);
   if (!mainSheet) return [];
 
   const data = mainSheet.getDataRange().getValues();
@@ -356,7 +373,7 @@ function onEdit(e) {
 //  appendHistory
 // ═══════════════════════════════════════════════════════════════
 function appendHistory(trackingNumber, status, timestamp, location, note) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getSpreadsheet();
   let histSheet = ss.getSheetByName(HISTORY_SHEET);
 
   if (!histSheet) {
@@ -373,7 +390,7 @@ function appendHistory(trackingNumber, status, timestamp, location, note) {
 // ═══════════════════════════════════════════════════════════════
 function writeLog(level, context, message) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getSpreadsheet();
     let logSheet = ss.getSheetByName(LOG_SHEET);
 
     if (!logSheet) {
@@ -553,7 +570,7 @@ function buildResponse(data) {
 //  generateTrackingNumber
 // ═══════════════════════════════════════════════════════════════
 function generateTrackingNumber() {
-  const ss     = SpreadsheetApp.getActiveSpreadsheet();
+  const ss     = getSpreadsheet();
   const sheet  = ss.getSheetByName(SHEET_NAME);
   const today  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd');
   const prefix = 'SS' + today + '-';
@@ -582,7 +599,7 @@ function handleCreateOrder(params) {
     return buildResponse({ error: 'MISSING_FIELDS', message: 'Customer name and valid email are required.' });
   }
 
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss    = getSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) return buildResponse({ error: 'SHEET_NOT_FOUND' });
 
@@ -645,7 +662,7 @@ function handleUpdateStatus(params) {
     return buildResponse({ error: 'INVALID_STATUS', message: 'Unknown status value.' });
   }
 
-  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ss    = getSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) return buildResponse({ error: 'SHEET_NOT_FOUND' });
 
