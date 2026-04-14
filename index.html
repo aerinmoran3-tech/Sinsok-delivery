@@ -844,6 +844,15 @@
         </div>
       </div>
 
+      <!-- Package Contents (shown if available) -->
+      <div id="contentsCard" style="display:none;background:#fff;border-radius:14px;box-shadow:0 4px 16px rgba(10,22,40,0.10);padding:16px 20px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#94A3B8;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:#94A3B8;"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27z"/></svg>
+          <span id="contentsLabel">Package Contents</span>
+        </div>
+        <div style="font-size:14px;color:#0A1628;font-weight:500;line-height:1.5;" id="contentsValue">—</div>
+      </div>
+
       <!-- Timeline Card -->
       <div class="timeline-card">
         <div class="card-heading" data-i18n="delivery_progress">Delivery Progress</div>
@@ -1458,8 +1467,18 @@
       etaExpBadge.style.display = data.etaExpired ? 'inline-block' : 'none';
 
       // Info tiles
-      document.getElementById('lastUpdate').textContent    = data.lastUpdated || '—';
-      document.getElementById('currentLocation').textContent = data.location || '—';
+      document.getElementById('lastUpdate').textContent      = data.lastUpdated || '—';
+      document.getElementById('currentLocation').textContent = data.location    || '—';
+
+      // Package contents
+      const contentsCard = document.getElementById('contentsCard');
+      if (data.packageContents) {
+        document.getElementById('contentsLabel').textContent = currentLang === 'kr' ? '포장 내용물' : 'Package Contents';
+        document.getElementById('contentsValue').textContent = data.packageContents;
+        contentsCard.style.display = 'block';
+      } else {
+        contentsCard.style.display = 'none';
+      }
 
       // Service tier badge
       const tierBadge = document.getElementById('serviceTierBadge');

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Sinsok Delivery</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-900:    #0A1628;
+      --blue-800:    #102040;
+      --accent:      #2563EB;
+      --accent-light:#3B82F6;
+      --green:       #10B981;
+      --red:         #EF4444;
+      --amber:       #F59E0B;
+      --surface:     #FFFFFF;
+      --surface-2:   #F4F6FA;
+      --border:      #E2E8F4;
+      --text-primary:#0A1628;
+      --text-secondary:#4A5568;
+      --text-muted:  #94A3B8;
+      --shadow-md:   0 4px 16px rgba(10,22,40,0.10);
+      --radius-sm:   8px;
+      --radius-md:   14px;
+      --radius-lg:   20px;
+      --transition:  0.22s cubic-bezier(0.4,0,0.2,1);
+      --font-mono:   'JetBrains Mono', monospace;
+    }
+
+    html { font-size: 16px; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--surface-2); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased; }
+
+    /* ─── PASSWORD GATE ──────────────────────────────────── */
+    #gate {
+      position: fixed; inset: 0; background: var(--blue-900);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 20px;
+    }
+    .gate-card {
+      background: #132035; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg); padding: 40px 32px;
+      width: 100%; max-width: 360px; text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .gate-icon {
+      width: 60px; height: 60px; background: var(--accent); border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+    }
+    .gate-icon svg { width: 28px; height: 28px; fill: #fff; }
+    .gate-brand-kr { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent-light); text-transform: uppercase; margin-bottom: 4px; }
+    .gate-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .gate-sub { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 32px; }
+    .gate-input {
+      width: 100%; height: 50px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-sm); padding: 0 16px;
+      font-family: var(--font-mono); font-size: 16px; color: #fff;
+      outline: none; transition: var(--transition);
+      letter-spacing: 0.06em; text-align: center; margin-bottom: 12px;
+      -webkit-appearance: none;
+    }
+    .gate-input:focus { border-color: var(--accent); background: rgba(37,99,235,0.12); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+    .gate-input::placeholder { color: rgba(255,255,255,0.2); font-family: 'DM Sans', sans-serif; letter-spacing: 0; font-size: 13px; }
+    .gate-btn {
+      width: 100%; height: 50px; background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+    }
+    .gate-btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+    .gate-error { color: #FCA5A5; font-size: 12px; margin-top: 12px; min-height: 16px; }
+
+    /* ─── HEADER ─────────────────────────────────────────── */
+    header {
+      background: var(--blue-900); padding: 0 20px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 16px rgba(0,0,0,0.3);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 18px; height: 18px; fill: #fff; }
+    .logo-text { display: flex; flex-direction: column; line-height: 1; }
+    .logo-kr { font-size: 11px; font-weight: 700; color: var(--accent-light); letter-spacing: 0.04em; }
+    .logo-en { font-size: 13px; font-weight: 600; color: #fff; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .admin-badge {
+      background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.4);
+      color: #FCD34D; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 4px 10px; border-radius: 100px;
+    }
+    .logout-btn {
+      background: none; border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5); font-family: inherit; font-size: 11px;
+      font-weight: 500; padding: 4px 10px; border-radius: 5px;
+      cursor: pointer; transition: var(--transition); display: none;
+    }
+    .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+    /* ─── MAIN ───────────────────────────────────────────── */
+    main { flex: 1; padding: 24px 16px 48px; max-width: 680px; margin: 0 auto; width: 100%; }
+
+    /* ─── CARD ───────────────────────────────────────────── */
+    .card { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 16px; overflow: hidden; }
+    .card-header { background: var(--blue-900); padding: 18px 24px; display: flex; align-items: center; gap: 12px; }
+    .card-icon { width: 36px; height: 36px; background: rgba(37,99,235,0.2); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon svg { width: 18px; height: 18px; fill: #93C5FD; }
+    .card-header-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .card-header-sub { font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+    .card-body { padding: 24px; }
+
+    /* ─── FORM ───────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .req::after { content: ' *'; color: var(--red); }
+    input[type="text"], input[type="email"], input[type="date"], select {
+      height: 44px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0 12px; font-family: inherit; font-size: 14px;
+      color: var(--text-primary); background: var(--surface-2);
+      transition: var(--transition); outline: none;
+      -webkit-appearance: none; appearance: none; width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+    }
+
+    /* ─── BUTTONS ────────────────────────────────────────── */
+    .submit-btn {
+      margin-top: 20px; width: 100%; height: 48px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn:hover:not(:disabled) { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .submit-btn.green { background: var(--green); }
+    .submit-btn.green:hover:not(:disabled) { background: #059669; box-shadow: 0 4px 16px rgba(16,185,129,0.35); }
+    .btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-loading .btn-spinner { display: block; }
+    .btn-loading .btn-label { display: none; }
+
+    /* ─── LOOKUP ROW ─────────────────────────────────────── */
+    .lookup-row { display: flex; gap: 8px; }
+    .lookup-btn {
+      height: 44px; padding: 0 18px; background: var(--blue-900); color: #fff; border: none;
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px;
+      transition: var(--transition); flex-shrink: 0;
+    }
+    .lookup-btn:hover:not(:disabled) { background: var(--blue-800); }
+    .lookup-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ─── STATUS / SUCCESS / ERROR BOXES ─────────────────── */
+    .result-box {
+      margin-top: 14px; border-radius: var(--radius-sm); padding: 16px 18px; display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .result-box.show { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .box-success { background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.22); }
+    .box-info    { background: var(--surface-2); border: 1px solid var(--border); }
+    .box-error   { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); color: var(--red); font-size: 13px; }
+
+    .box-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #059669; margin-bottom: 6px; }
+    .box-tracking { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .box-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+    .box-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .status-pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 10px; border-radius: 100px; background: rgba(37,99,235,0.1); color: var(--accent); margin-top: 4px; }
+
+    .copy-tn-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: 1.5px solid var(--border); border-radius: 6px;
+      padding: 5px 12px; font-family: inherit; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+    }
+    .copy-tn-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-tn-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+    /* ─── UPDATE FORM ────────────────────────────────────── */
+    .update-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); display: none; }
+    .update-form.show { display: block; animation: fadeIn 0.3s ease; }
+    .divider-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+    /* ─── FOOTER ─────────────────────────────────────────── */
+    footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); }
+
+    @media (max-width: 520px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .card-body { padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── PASSWORD GATE ──────────────────────────────────── -->
+  <div id="gate">
+    <div class="gate-card">
+      <div class="gate-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+      </div>
+      <div class="gate-brand-kr">신속배송 · Sinsok Delivery</div>
+      <div class="gate-title">Admin Portal</div>
+      <div class="gate-sub">Internal use only — enter your password to continue</div>
+      <input
+        type="password"
+        class="gate-input"
+        id="pwInput"
+        placeholder="Password"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') checkPassword()"
+      />
+      <button class="gate-btn" onclick="checkPassword()">Unlock</button>
+      <div class="gate-error" id="gateError"></div>
+    </div>
+  </div>
+
+  <!-- ─── HEADER ───────────────────────────────────────────── -->
+  <header>
+    <a class="logo" href="/">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zm-1.5 1.5L20.46 12H17V9.5h1.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.46 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-kr">신속배송</span>
+        <span class="logo-en">Sinsok Delivery</span>
+      </div>
+    </a>
+    <div class="header-right">
+      <span class="admin-badge">Admin Portal</span>
+      <button class="logout-btn" id="logoutBtn" onclick="logout()">Log out</button>
+    </div>
+  </header>
+
+  <!-- ─── ADMIN PANEL ──────────────────────────────────────── -->
+  <main id="adminPanel" style="display:none;">
+
+    <!-- CREATE NEW ORDER -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+        </div>
+        <div>
+          <div class="card-header-title">Create New Order</div>
+          <div class="card-header-sub">Tracking number is generated automatically — confirmation email sent instantly</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="req" for="custName">Customer Name</label>
+            <input type="text" id="custName" placeholder="Kim Jisoo" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="req" for="custEmail">Customer Email</label>
+            <input type="email" id="custEmail" placeholder="customer@example.com" autocomplete="off" />
+          </div>
+          <div class="form-group full">
+            <label for="pkgContents">Package Contents / Description</label>
+            <input type="text" id="pkgContents" placeholder="e.g. Electronics — 1x Laptop, 2x Charging Cables" />
+          </div>
+          <div class="form-group full">
+            <label for="destination">Destination / Address</label>
+            <input type="text" id="destination" placeholder="e.g. Seoul, Gangnam-gu" />
+          </div>
+          <div class="form-group">
+            <label for="serviceTier">Service Tier</label>
+            <select id="serviceTier">
+              <option value="Standard">Standard</option>
+              <option value="Express">Express</option>
+              <option value="Economy">Economy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="eta">Estimated Delivery Date</label>
+            <input type="date" id="eta" />
+          </div>
+        </div>
+
+        <button class="submit-btn" id="createBtn" onclick="createOrder()">
+          <span class="btn-spinner"></span>
+          <span class="btn-label">Create Order &amp; Send Confirmation Email</span>
+        </button>
+
+        <div class="result-box box-success" id="createSuccess">
+          <div class="box-label">Order Created Successfully</div>
+          <div class="box-tracking" id="newTrackingNo">—</div>
+          <button class="copy-tn-btn" onclick="copyTrackingNo()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy Number
+          </button>
+          <div class="box-sub">Confirmation email sent to customer ✓</div>
+        </div>
+        <div class="result-box box-error" id="createError"></div>
+      </div>
+    </div>
+
+    <!-- UPDATE ORDER STATUS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" style="fill:none;stroke:#93C5FD;stroke-width:2;stroke-linecap:round;"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        </div>
+        <div>
+          <div class="card-header-title">Update Order Status</div>
+          <div class="card-header-sub">Look up an order, then push the new status — customer is notified automatically</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Step 1: Look up -->
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="lookupTn">Tracking Number</label>
+          <div class="lookup-row">
+            <input
+              type="text"
+              id="lookupTn"
+              placeholder="SS20260414-001"
+              style="font-family:var(--font-mono);font-size:13px;letter-spacing:0.02em;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase()"
+              onkeydown="if(event.key==='Enter') lookupOrder()"
+            />
+            <button class="lookup-btn" id="lookupBtn" onclick="lookupOrder()">
+              <span class="btn-spinner" id="lookupSpinner"></span>
+              <span id="lookupBtnText">Look Up</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="result-box box-info" id="lookupResult">
+          <div class="box-meta" id="lookupTnDisplay" style="font-family:var(--font-mono);font-weight:700;font-size:14px;">—</div>
+          <span class="status-pill" id="lookupStatusDisplay">—</span>
+          <div class="box-sub" id="lookupMetaDisplay">—</div>
+        </div>
+        <div class="result-box box-error" id="lookupError"></div>
+
+        <!-- Step 2: Update form (shown after lookup) -->
+        <div class="update-form" id="updateForm">
+          <div class="divider-label">Update Status</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="newStatus">New Status</label>
+              <select id="newStatus">
+                <option value="order_received">Order Received</option>
+                <option value="preparing_shipment">Preparing Shipment</option>
+                <option value="shipment_completed">Shipment Completed</option>
+                <option value="in_transit">In Transit</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="newLocation">Current Location</label>
+              <input type="text" id="newLocation" placeholder="e.g. Gyeonggi Transit Hub" />
+            </div>
+            <div class="form-group full">
+              <label for="statusNote">Internal Note (optional — shown on tracking page)</label>
+              <input type="text" id="statusNote" placeholder="e.g. Left at front door" />
+            </div>
+          </div>
+          <button class="submit-btn green" id="updateBtn" onclick="updateStatus()">
+            <span class="btn-spinner"></span>
+            <span class="btn-label">Update Status &amp; Notify Customer</span>
+          </button>
+          <div class="result-box box-success" id="updateSuccess">
+            <div class="box-label">Status Updated</div>
+            <div class="box-sub" id="updateSuccessMsg">Customer notification sent ✓</div>
+          </div>
+          <div class="result-box box-error" id="updateError"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    신속배송 · Sinsok Delivery Admin Portal &nbsp;·&nbsp; &copy; <span id="yr"></span>
+  </footer>
+
+  <script>
+    /* ══════════════════════════════════════════════════════
+       CONFIGURATION
+       ─────────────────────────────────────────────────────
+       GAS_URL   — same as index.html
+       ADMIN_KEY — must match ADMIN_KEY constant in Code.gs
+    ══════════════════════════════════════════════════════ */
+    const GAS_URL   = 'https://script.google.com/macros/s/AKfycbx7lcckCzo1XUB0uVFjT6NZinODMS1-DTwThiMb5YKWOJXk8-bN8pFcbdsxr8s6oXXI/exec';
+    const ADMIN_KEY = 'sinsok-admin-2026';
+
+    /* ══════════════════════════════════════════════════════
+       PASSWORD — change this to something private
+    ══════════════════════════════════════════════════════ */
+    const ADMIN_PASSWORD = 'sinsok2026';
+
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    /* ── AUTH ─────────────────────────────────────────── */
+    function checkPassword() {
+      const val = document.getElementById('pwInput').value;
+      if (val === ADMIN_PASSWORD) {
+        unlock();
+      } else {
+        const err = document.getElementById('gateError');
+        err.textContent = 'Incorrect password — please try again.';
+        document.getElementById('pwInput').value = '';
+        document.getElementById('pwInput').focus();
+        setTimeout(() => { err.textContent = ''; }, 3500);
+      }
+    }
+
+    function unlock() {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'block';
+      sessionStorage.setItem('sinsok_admin', '1');
+    }
+
+    function logout() {
+      sessionStorage.removeItem('sinsok_admin');
+      document.getElementById('gate').style.display = 'flex';
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('pwInput').value = '';
+    }
+
+    if (sessionStorage.getItem('sinsok_admin') === '1') unlock();
+
+    /* ── API HELPER ───────────────────────────────────── */
+    function api(params) {
+      const url = new URL(GAS_URL);
+      url.searchParams.set('adminKey', ADMIN_KEY);
+      Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') url.searchParams.set(k, v); });
+      return fetch(url.toString()).then(r => r.json());
+    }
+
+    /* ── STATUS LABELS ────────────────────────────────── */
+    const STATUS_LABELS = {
+      order_received:     'Order Received',
+      preparing_shipment: 'Preparing Shipment',
+      shipment_completed: 'Shipment Completed',
+      in_transit:         'In Transit',
+      out_for_delivery:   'Out for Delivery',
+      delivered:          'Delivered',
+    };
+    const ALL_STEPS = ['order_received','preparing_shipment','shipment_completed','in_transit','out_for_delivery','delivered'];
+
+    /* ══════════════════════════════════════════════════════
+       CREATE ORDER
+    ══════════════════════════════════════════════════════ */
+    function createOrder() {
+      const name     = document.getElementById('custName').value.trim();
+      const email    = document.getElementById('custEmail').value.trim();
+      const contents = document.getElementById('pkgContents').value.trim();
+      const dest     = document.getElementById('destination').value.trim();
+      const tier     = document.getElementById('serviceTier').value;
+      const eta      = document.getElementById('eta').value;
+
+      hideBox('createSuccess'); hideBox('createError');
+
+      if (!name) { showError('createError', 'Customer name is required.'); return; }
+      if (!email || !email.includes('@')) { showError('createError', 'A valid email address is required.'); return; }
+
+      const btn = document.getElementById('createBtn');
+      setLoading(btn, true);
+
+      api({ action: 'createOrder', customerName: name, email, packageContents: contents, destination: dest, serviceTier: tier, eta })
+        .then(res => {
+          setLoading(btn, false);
+          if (res.success) {
+            document.getElementById('newTrackingNo').textContent = res.trackingNumber;
+            showBox('createSuccess');
+            document.getElementById('custName').value = '';
+            document.getElementById('custEmail').value = '';
+            document.getElementById('pkgContents').value = '';
+            document.getElementById('destination').value = '';
+            document.getElementById('serviceTier').value = 'Standard';
+            document.getElementById('eta').value = '';
+          } else {
+            showError('createError', res.message || res.error || 'Something went wrong. Please try again.');
+          }
+        })
+        .catch(() => {
+          setLoading(btn, false);
+          showError('createError', 'Could not reach the server. Check your connection and try again.');
+        });
+    }
+
+    function copyTrackingNo() {
+      const tn = document.getElementById('newTrackingNo').textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(tn).then(() => {
+          const btn = document.querySelector('.copy-tn-btn');
+          const orig = btn.innerHTML;
+          btn.innerHTML = '✓ Copied!';
+          btn.style.color = 'var(--green)';
+          setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+        });
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       LOOK UP ORDER
+    ══════════════════════════════════════════════════════ */
+    function lookupOrder() {
+      const tn = document.getElementById('lookupTn').value.trim().toUpperCase();
+      hideBox('lookupResult'); hideBox('lookupError');
+      document.getElementById('updateForm').classList.remove('show');
+
+      if (!tn) { showError('lookupError', 'Enter a tracking number to look up.'); return; }
+
+      const btn     = document.getElementById('lookupBtn');
+      const spinner = document.getElementById('lookupSpinner');
+      const btnText = document.getElementById('lookupBtnText');
+      spinner.style.display = 'block'; btnText.style.display = 'none'; btn.disabled = true;
+
+      api({ action: 'lookupOrder', trackingNumber: tn })
+        .then(res => {
+          spinner.style.display = 'none'; btnText.style.display = 'block'; btn.disabled = false;
+          if (res.error) {
+            const msg = res.error === 'NOT_FOUND'
+              ? 'No order found with that tracking number.'
+              : (res.message || res.error);
+            showError('lookupError', msg);
+          } else {
+            document.getElementById('lookupTnDisplay').textContent = res.trackingNumber;
+            document.getElementById('lookupStatusDisplay').textContent = STATUS_LABELS[res.status] || res.status;
+            const meta = [
+              res.customerName ? 'Customer: ' + res.customerName : null,
+              res.lastUpdated  ? 'Last update: ' + res.lastUpdated : null,
+              res.location     ? 'Location: ' + res.location : null,
+            ].filter(Boolean).join(' · ');
+            document.getElementById('lookupMetaDisplay').textContent = meta;
+            showBox('lookupResult');
+
+            const idx     = ALL_STEPS.indexOf(res.status);
+            const nextIdx = Math.min(idx + 1, ALL_STEPS.length - 1);
+            document.getElementById('newStatus').value   = ALL_STEPS[nextIdx];
+            document.getElementById('newLocation').value = res.location || '';
+            document.getElementById('statusNote').value  = '';
+            hideBox('updateSuccess'); hideBox('updateError');
+            document.getElementById('updateForm').classList.add('show');
+          }
+        })
+        .catch(() => {
+          spinner.style.display = 'none'; btnText.style.display = 'block'; btn.disabled = false;
+          showError('lookupError', 'Could not reach the server. Check your connection.');
+        });
+    }
+
+    /* ══════════════════════════════════════════════════════
+       UPDATE STATUS
+    ══════════════════════════════════════════════════════ */
+    function updateStatus() {
+      const tn       = document.getElementById('lookupTn').value.trim().toUpperCase();
+      const status   = document.getElementById('newStatus').value;
+      const location = document.getElementById('newLocation').value.trim();
+      const note     = document.getElementById('statusNote').value.trim();
+
+      hideBox('updateSuccess'); hideBox('updateError');
+
+      const btn = document.getElementById('updateBtn');
+      setLoading(btn, true);
+
+      api({ action: 'updateStatus', trackingNumber: tn, status, location, note })
+        .then(res => {
+          setLoading(btn, false);
+          if (res.success) {
+            const label = STATUS_LABELS[res.newStatus] || res.newStatus;
+            document.getElementById('updateSuccessMsg').textContent =
+              res.trackingNumber + ' → ' + label + ' · Customer notified ✓';
+            showBox('updateSuccess');
+            document.getElementById('lookupStatusDisplay').textContent = label;
+          } else {
+            showError('updateError', res.message || res.error || 'Update failed. Please try again.');
+          }
+        })
+        .catch(() => {
+          setLoading(btn, false);
+          showError('updateError', 'Could not reach the server. Check your connection.');
+        });
+    }
+
+    /* ── HELPERS ──────────────────────────────────────── */
+    function setLoading(btn, on) {
+      btn.disabled = on;
+      btn.classList.toggle('btn-loading', on);
+    }
+    function showBox(id) { document.getElementById(id).classList.add('show'); }
+    function hideBox(id) { document.getElementById(id).classList.remove('show'); }
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 6000);
+    }
+  </script>
+</body>
+</html>

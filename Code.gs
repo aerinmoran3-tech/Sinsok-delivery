@@ -10,7 +10,11 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ─── VERSION ────────────────────────────────────────────────────
-const VERSION = '3.0.0';
+const VERSION   = '3.0.0';
+
+// ─── ADMIN KEY ───────────────────────────────────────────────────
+// Must match ADMIN_KEY in admin.html — change both together.
+const ADMIN_KEY = 'sinsok-admin-2026';
 
 // ─── CONFIGURATION ──────────────────────────────────────────────
 // ▶ REQUIRED: Set SITE_URL to your live Netlify domain before deploying.
@@ -45,6 +49,7 @@ const COL = {
   PREVIOUS_STATUS:  8,
   DELIVERY_PHOTO:   9,
   SERVICE_TIER:     10,
+  PACKAGE_CONTENTS: 11,
 };
 
 // ─── STEP ORDER ──────────────────────────────────────────────────
@@ -86,6 +91,17 @@ function doGet(e) {
         tracking_sheet_exists: sheetOk,
       }
     });
+  }
+
+  // ── Admin actions (protected by adminKey)
+  const ADMIN_ACTIONS = ['createOrder', 'updateStatus', 'lookupOrder'];
+  if (ADMIN_ACTIONS.includes(params.action)) {
+    if ((params.adminKey || '') !== ADMIN_KEY) {
+      return buildResponse({ error: 'UNAUTHORIZED', message: 'Invalid admin key.' });
+    }
+    if (params.action === 'createOrder')  return handleCreateOrder(params);
+    if (params.action === 'updateStatus') return handleUpdateStatus(params);
+    if (params.action === 'lookupOrder')  return handleLookupOrder(params);
   }
 
   // ── Rate limiting
@@ -195,7 +211,8 @@ function getTrackingData(trackingNumber) {
     const status        = normalizeStatus(row[COL.STATUS - 1]);
     const history       = getHistoryFromSheet(trackingNumber);
     const deliveryPhoto = (row[COL.DELIVERY_PHOTO - 1] || '').toString().trim();
-    const serviceTier   = (row[COL.SERVICE_TIER - 1] || 'Standard').toString().trim();
+    const serviceTier     = (row[COL.SERVICE_TIER - 1]     || 'Standard').toString().trim();
+    const packageContents = (row[COL.PACKAGE_CONTENTS - 1] || '').toString().trim();
     const eta           = row[COL.ETA - 1];
     const etaFormatted  = formatDate(eta);
     const etaExpired    = isEtaExpired(eta, status);
@@ -210,6 +227,7 @@ function getTrackingData(trackingNumber) {
       etaExpired,
       customerName:   row[COL.CUSTOMER_NAME - 1] || '',
       serviceTier,
+      packageContents,
       deliveryPhoto:  deliveryPhoto || null,
       history,
       version:        VERSION,
@@ -332,7 +350,7 @@ function onEdit(e) {
 // ═══════════════════════════════════════════════════════════════
 //  appendHistory
 // ═══════════════════════════════════════════════════════════════
-function appendHistory(trackingNumber, status, timestamp, location) {
+function appendHistory(trackingNumber, status, timestamp, location, note) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let histSheet = ss.getSheetByName(HISTORY_SHEET);
 
@@ -342,7 +360,7 @@ function appendHistory(trackingNumber, status, timestamp, location) {
     histSheet.setFrozenRows(1);
   }
 
-  histSheet.appendRow([trackingNumber, status, timestamp, location, '']);
+  histSheet.appendRow([trackingNumber, status, timestamp, location, note || '']);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -524,6 +542,272 @@ function buildResponse(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  generateTrackingNumber
+// ═══════════════════════════════════════════════════════════════
+function generateTrackingNumber() {
+  const ss     = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet  = ss.getSheetByName(SHEET_NAME);
+  const today  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd');
+  const prefix = 'SS' + today + '-';
+  if (!sheet) return prefix + '001';
+  const rows  = sheet.getDataRange().getValues();
+  let   count = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const tn = (rows[i][COL.TRACKING_NUMBER - 1] || '').toString().toUpperCase();
+    if (tn.startsWith(prefix)) count++;
+  }
+  return prefix + String(count + 1).padStart(3, '0');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  handleCreateOrder — admin action
+// ═══════════════════════════════════════════════════════════════
+function handleCreateOrder(params) {
+  const customerName    = (params.customerName    || '').trim();
+  const email           = (params.email           || '').trim();
+  const packageContents = (params.packageContents || '').trim();
+  const destination     = (params.destination     || '').trim();
+  const serviceTier     = (params.serviceTier     || 'Standard').trim();
+  const eta             = (params.eta             || '').trim();
+
+  if (!customerName || !email || email.indexOf('@') === -1) {
+    return buildResponse({ error: 'MISSING_FIELDS', message: 'Customer name and valid email are required.' });
+  }
+
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return buildResponse({ error: 'SHEET_NOT_FOUND' });
+
+  const trackingNumber = generateTrackingNumber();
+  const now = new Date();
+  const ts  = Utilities.formatDate(now, Session.getScriptTimeZone(), 'MMM d, yyyy HH:mm');
+  const loc = destination || 'Warehouse';
+
+  sheet.appendRow([
+    trackingNumber,    // A — Tracking Number
+    email,             // B — Customer Email
+    'order_received',  // C — Status
+    loc,               // D — Location
+    ts,                // E — Last Updated
+    eta,               // F — ETA
+    customerName,      // G — Customer Name
+    '',                // H — Previous Status
+    '',                // I — Delivery Photo
+    serviceTier,       // J — Service Tier
+    packageContents,   // K — Package Contents
+  ]);
+
+  appendHistory(trackingNumber, 'order_received', ts, loc, '');
+
+  const orderData = {
+    trackingNumber,
+    customerName,
+    customerEmail:  email,
+    status:         'order_received',
+    location:       loc,
+    lastUpdated:    ts,
+    eta,
+    serviceTier,
+    packageContents,
+    deliveryPhoto:  null,
+  };
+  sendConfirmationEmail(orderData);
+
+  writeLog('INFO', 'handleCreateOrder', 'Created: ' + trackingNumber + ' for ' + email);
+  return buildResponse({ success: true, trackingNumber });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  handleUpdateStatus — admin action
+// ═══════════════════════════════════════════════════════════════
+function handleUpdateStatus(params) {
+  const raw       = (params.trackingNumber || '').trim().toUpperCase();
+  const newStatus = normalizeStatus(params.status || '');
+  const location  = (params.location || '').trim();
+  const note      = (params.note     || '').trim();
+
+  if (!raw || !TRACKING_REGEX.test(raw)) {
+    return buildResponse({ error: 'INVALID_FORMAT' });
+  }
+  if (!ALL_STEPS.includes(newStatus)) {
+    return buildResponse({ error: 'INVALID_STATUS', message: 'Unknown status value.' });
+  }
+
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return buildResponse({ error: 'SHEET_NOT_FOUND' });
+
+  const rows     = sheet.getDataRange().getValues();
+  let   foundRow = -1;
+  for (let i = 1; i < rows.length; i++) {
+    const tn = (rows[i][COL.TRACKING_NUMBER - 1] || '').toString().trim().toUpperCase();
+    if (tn === raw) { foundRow = i + 1; break; }
+  }
+  if (foundRow === -1) return buildResponse({ error: 'NOT_FOUND' });
+
+  const now = new Date();
+  const ts  = Utilities.formatDate(now, Session.getScriptTimeZone(), 'MMM d, yyyy HH:mm');
+  const loc = location || sheet.getRange(foundRow, COL.LOCATION).getValue().toString().trim();
+
+  sheet.getRange(foundRow, COL.STATUS).setValue(newStatus);
+  sheet.getRange(foundRow, COL.PREVIOUS_STATUS).setValue(newStatus);
+  sheet.getRange(foundRow, COL.LAST_UPDATED).setValue(ts);
+  if (location) sheet.getRange(foundRow, COL.LOCATION).setValue(location);
+  appendHistory(raw, newStatus, ts, loc, note);
+
+  const trackingData = getTrackingData(raw);
+  if (trackingData) {
+    const rawEmail = sheet.getRange(foundRow, COL.CUSTOMER_EMAIL).getValue().toString().trim();
+    if (rawEmail && rawEmail.indexOf('@') !== -1) {
+      try {
+        const sendData = Object.assign({}, trackingData, { customerEmail: rawEmail });
+        sendStatusEmail(sendData);
+        writeLog('INFO', 'handleUpdateStatus', 'Email sent: ' + raw + ' → ' + newStatus);
+      } catch (err) {
+        writeLog('ERROR', 'handleUpdateStatus', 'Email FAILED: ' + raw + ' → ' + err.message);
+      }
+    }
+  }
+
+  writeLog('INFO', 'handleUpdateStatus', raw + ' → ' + newStatus);
+  return buildResponse({ success: true, trackingNumber: raw, newStatus });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  handleLookupOrder — admin action
+// ═══════════════════════════════════════════════════════════════
+function handleLookupOrder(params) {
+  const raw = (params.trackingNumber || '').trim().toUpperCase();
+  if (!raw || !TRACKING_REGEX.test(raw)) {
+    return buildResponse({ error: 'INVALID_FORMAT' });
+  }
+  const data = getTrackingData(raw);
+  if (!data) return buildResponse({ error: 'NOT_FOUND' });
+  return buildResponse({
+    trackingNumber:  data.trackingNumber,
+    customerName:    data.customerName,
+    status:          data.status,
+    location:        data.location,
+    lastUpdated:     data.lastUpdated,
+    eta:             data.eta,
+    serviceTier:     data.serviceTier,
+    packageContents: data.packageContents,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  sendConfirmationEmail — sent on new order creation
+// ═══════════════════════════════════════════════════════════════
+function sendConfirmationEmail(data) {
+  const email = data.customerEmail;
+  if (!email || email.indexOf('@') === -1) return;
+  const subject = '[' + COMPANY_KR + '] Order Confirmed — ' + data.trackingNumber;
+  const html    = buildConfirmationEmailHTML(data);
+  GmailApp.sendEmail(email, subject, '', { htmlBody: html, name: COMPANY_NAME });
+  writeLog('INFO', 'sendConfirmationEmail', 'Sent to ' + email + ' — ' + data.trackingNumber);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  buildConfirmationEmailHTML
+// ═══════════════════════════════════════════════════════════════
+function buildConfirmationEmailHTML(data) {
+  const name         = data.customerName || 'Valued Customer';
+  const trackingLink = SITE_URL + '?track=' + encodeURIComponent(data.trackingNumber);
+  const etaRow = data.eta
+    ? '<tr><td style="padding:5px 0;font-size:13px;color:#4A5568;width:160px;"><strong>Est. Delivery:</strong></td><td style="padding:5px 0;font-size:13px;color:#0A1628;">' + data.eta + '</td></tr>'
+    : '';
+  const contentsRow = data.packageContents
+    ? '<tr><td style="padding:5px 0;font-size:13px;color:#4A5568;"><strong>Package Contents:</strong></td><td style="padding:5px 0;font-size:13px;color:#0A1628;">' + data.packageContents + '</td></tr>'
+    : '';
+  const tierRow = data.serviceTier
+    ? '<tr><td style="padding:5px 0;font-size:13px;color:#4A5568;"><strong>Service Tier:</strong></td><td style="padding:5px 0;font-size:13px;color:#0A1628;">' + data.serviceTier + '</td></tr>'
+    : '';
+  const locRow = data.location && data.location !== 'Warehouse'
+    ? '<tr><td style="padding:5px 0;font-size:13px;color:#4A5568;"><strong>Destination:</strong></td><td style="padding:5px 0;font-size:13px;color:#0A1628;">' + data.location + '</td></tr>'
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Order Confirmed — ${data.trackingNumber}</title>
+</head>
+<body style="margin:0;padding:0;background:#F4F6FA;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6FA;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td style="background:#0A1628;border-radius:14px 14px 0 0;padding:24px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#3B82F6;">신속배송</p>
+                    <p style="margin:3px 0 0;font-size:18px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">Sinsok Delivery</p>
+                  </td>
+                  <td align="right">
+                    <span style="background:rgba(16,185,129,0.25);border:1px solid rgba(16,185,129,0.5);color:#6EE7B7;font-size:11px;font-weight:600;padding:5px 12px;border-radius:100px;letter-spacing:0.04em;">ORDER CONFIRMED</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#FFFFFF;padding:32px;">
+              <p style="margin:0 0 20px;font-size:15px;color:#4A5568;line-height:1.5;">
+                Dear <strong style="color:#0A1628;">${name}</strong>,
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#4A5568;line-height:1.65;">
+                Thank you for choosing Sinsok Delivery. Your order has been received and is now being processed. You can track your package in real time using the button below.
+              </p>
+              <div style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid #BFDBFE;border-radius:12px;padding:24px;margin-bottom:24px;text-align:center;">
+                <p style="margin:0 0 6px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B7280;">Your Tracking Number</p>
+                <p style="margin:0 0 18px;font-size:28px;font-weight:700;color:#1D4ED8;letter-spacing:0.04em;font-family:monospace;">${data.trackingNumber}</p>
+                <a href="${trackingLink}" style="display:inline-block;background:#2563EB;color:#ffffff;font-size:13px;font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Track My Package →</a>
+              </div>
+              <div style="border:1px solid #E2E8F4;border-radius:10px;padding:18px;margin-bottom:20px;">
+                <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#94A3B8;">Order Details</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  ${contentsRow}
+                  ${locRow}
+                  ${tierRow}
+                  ${etaRow}
+                  <tr>
+                    <td style="padding:5px 0;font-size:13px;color:#4A5568;"><strong>Order Date:</strong></td>
+                    <td style="padding:5px 0;font-size:13px;color:#0A1628;">${data.lastUpdated}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:5px 0;font-size:13px;color:#4A5568;"><strong>Status:</strong></td>
+                    <td style="padding:5px 0;font-size:13px;color:#2563EB;font-weight:600;">Order Received — Processing</td>
+                  </tr>
+                </table>
+              </div>
+              <p style="margin:0 0 24px;font-size:13px;color:#4A5568;line-height:1.65;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:14px 16px;">
+                📬 <strong>What happens next?</strong> We'll send you an email update every time your package moves to a new stage. You can also check the live status anytime using the tracking button above.
+              </p>
+              <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.6;border-top:1px solid #F1F5F9;padding-top:20px;">
+                If you have any questions about your delivery, please contact our customer service team.<br/>
+                Thank you for choosing Sinsok Delivery.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#F8FAFC;border-radius:0 0 14px 14px;padding:18px 32px;text-align:center;border-top:1px solid #E2E8F4;">
+              <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#0A1628;">신속배송 · Sinsok Delivery</p>
+              <p style="margin:0;font-size:11px;color:#94A3B8;">서울특별시 강남구 · Seoul, South Korea</p>
+              <p style="margin:8px 0 0;font-size:10px;color:#CBD5E1;">This is an automated notification — please do not reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
