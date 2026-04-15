@@ -128,35 +128,69 @@ function cap(str, maxLen) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// getSpreadsheet — auto-discovers, creates, and caches the sheet
+// setup — run this ONCE manually in the Apps Script editor.
+// It finds or creates the spreadsheet, initialises all tabs,
+// and caches the ID so the live web app never needs Drive access.
 // ═══════════════════════════════════════════════════════════════
-function getSpreadsheet() {
-  const props    = PropertiesService.getScriptProperties();
-  const cachedId = props.getProperty('_SS_ID');
-  if (cachedId) {
-    try { return SpreadsheetApp.openById(cachedId); } catch (e) { props.deleteProperty('_SS_ID'); }
-  }
+function setup() {
+  const props = PropertiesService.getScriptProperties();
+
+  // Try bound spreadsheet first (container-bound script)
   try {
     const bound = SpreadsheetApp.getActiveSpreadsheet();
     if (bound) {
       initSpreadsheet(bound);
       props.setProperty('_SS_ID', bound.getId());
-      return bound;
+      Logger.log('✅ Setup complete. Using bound spreadsheet: ' + bound.getName() + ' (' + bound.getId() + ')');
+      return;
     }
   } catch (e) {}
+
+  // Search Drive by name
   const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
   if (files.hasNext()) {
     const id = files.next().getId();
     const ss = SpreadsheetApp.openById(id);
     initSpreadsheet(ss);
     props.setProperty('_SS_ID', id);
-    return ss;
+    Logger.log('✅ Setup complete. Found existing spreadsheet: ' + ss.getName() + ' (' + id + ')');
+    return;
   }
+
+  // Create a brand-new spreadsheet
   const ss = SpreadsheetApp.create(SPREADSHEET_NAME);
   initSpreadsheet(ss);
   props.setProperty('_SS_ID', ss.getId());
-  Logger.log('[INFO] [getSpreadsheet] Created new spreadsheet: ' + ss.getId());
-  return ss;
+  Logger.log('✅ Setup complete. Created new spreadsheet: ' + ss.getName() + ' (' + ss.getId() + ')');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// getSpreadsheet — used by all web app requests.
+// Reads the cached ID set by setup(). Never calls DriveApp,
+// so no Drive permission is required at runtime.
+// ═══════════════════════════════════════════════════════════════
+function getSpreadsheet() {
+  const props    = PropertiesService.getScriptProperties();
+  const cachedId = props.getProperty('_SS_ID');
+
+  if (cachedId) {
+    try {
+      return SpreadsheetApp.openById(cachedId);
+    } catch (e) {
+      props.deleteProperty('_SS_ID');
+    }
+  }
+
+  // Fallback: bound spreadsheet (works if opened via Extensions → Apps Script)
+  try {
+    const bound = SpreadsheetApp.getActiveSpreadsheet();
+    if (bound) {
+      props.setProperty('_SS_ID', bound.getId());
+      return bound;
+    }
+  } catch (e) {}
+
+  throw new Error('Spreadsheet not found. Please run the setup() function once in the Apps Script editor first.');
 }
 
 // ═══════════════════════════════════════════════════════════════
