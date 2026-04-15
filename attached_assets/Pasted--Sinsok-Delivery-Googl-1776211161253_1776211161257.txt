@@ -37,7 +37,7 @@ const VERSION = '3.1.0-fixed';
 // Store via: Project Settings → Script Properties → ADMIN_KEY
 // Must match the value set in admin.html.
 // [FIX-A] Fallback string was truncated in original, causing SyntaxError.
-const ADMIN_KEY = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'sinsok-admin-2026';
+const ADMIN_KEY = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || 'sinsok-admin-key-change-me';
 
 // ─── CONFIGURATION ──────────────────────────────────────────────
 const SPREADSHEET_NAME = 'Sinsok Delivery';

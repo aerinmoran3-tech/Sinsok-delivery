@@ -439,17 +439,21 @@
     if (sessionStorage.getItem('sinsok_admin') === '1') unlock();
 
     /* ── API HELPER ───────────────────────────────────── */
+    // Admin actions are sent via POST with a JSON body (adminKey is never exposed in the URL).
+    // Tracking lookups (no adminKey) continue to use GET on index.html.
     function api(params) {
-      const url = new URL(GAS_URL);
-      url.searchParams.set('adminKey', ADMIN_KEY);
-      Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') url.searchParams.set(k, v); });
-      return fetch(url.toString())
+      const body = Object.assign({}, params, { adminKey: ADMIN_KEY });
+      // Note: no Content-Type header set — this keeps the request a CORS "simple" request
+      // so Google Apps Script receives it without a preflight OPTIONS call.
+      return fetch(GAS_URL, {
+        method: 'POST',
+        body:   JSON.stringify(body),
+      })
         .then(r => r.text())
         .then(text => {
           try {
             return JSON.parse(text);
           } catch (e) {
-            // GAS returned HTML (uncaught exception or not redeployed yet)
             throw new Error('GAS returned a non-JSON response — make sure Code.gs is saved and redeployed with a New Version.');
           }
         });
