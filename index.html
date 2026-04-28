@@ -599,6 +599,18 @@
     .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
     .copy-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 
+    /* Contact support button */
+    .support-btn {
+      flex: 1; height: 44px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      text-decoration: none;
+    }
+    .support-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .support-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+
     /* Share button */
     .share-btn {
       height: 44px; padding: 0 16px;
@@ -909,6 +921,14 @@
         </button>
       </div>
 
+      <!-- Contact Support row -->
+      <div class="result-actions" style="margin-top:-24px;">
+        <a href="#" class="support-btn" id="supportBtn" onclick="contactSupport(event)" aria-label="Contact support">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span data-i18n="contact_support">Contact Support</span>
+        </a>
+      </div>
+
     </div><!-- /#result-section -->
 
   </main>
@@ -981,6 +1001,7 @@
         copy_link:        'Copy Link',
         share_btn:        'Share',
         track_another:    'Track Another',
+        contact_support:  'Contact Support',
         proof_label:      'Proof of Delivery',
         proof_sub:        'Tap to view delivery photo',
         recent_label:     'Recent',
@@ -1028,6 +1049,7 @@
         copy_link:        '링크 복사',
         share_btn:        '공유',
         track_another:    '다른 배송 조회',
+        contact_support:  '고객지원 문의',
         proof_label:      '배송 완료 증명',
         proof_sub:        '배송 사진 보기',
         recent_label:     '최근 조회',
@@ -1621,6 +1643,26 @@
       } else {
         copyLink(); // fallback
       }
+    }
+
+    function contactSupport(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const num = (document.getElementById('displayTrackingNo').textContent || '').trim()
+                  || document.getElementById('trackingInput').value.trim()
+                  || '(none)';
+      const url = getTrackingURL();
+      const subject = `Support request — Tracking ${num}`;
+      const body =
+        `Hi Sinsok Delivery Support,\n\n` +
+        `I have a question about my package.\n\n` +
+        `Tracking Number: ${num}\n` +
+        `Tracking Link: ${url}\n\n` +
+        `Please describe your issue below this line:\n` +
+        `--------------------------------------------\n\n`;
+      const mailto = `mailto:support.sinsok.delivery@gmail.com` +
+        `?subject=${encodeURIComponent(subject)}` +
+        `&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
     }
 
     function showCopied() {
