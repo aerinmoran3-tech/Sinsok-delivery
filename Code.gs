@@ -726,7 +726,7 @@ function buildEmailHTML(data, statusInfo) {
               </div>
               ${photoHTML}
               <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;line-height:1.6;border-top:1px solid #E2E8F0;padding-top:20px;">
-                If you have any questions about your delivery, please contact our customer service.<br/>
+                If you have any questions about your delivery, please contact our customer service at <a href="mailto:support.sinsok.delivery@gmail.com" style="color:#2563EB;text-decoration:none;">support.sinsok.delivery@gmail.com</a>.<br/>
                 Thank you for choosing Sinsok Delivery.
               </p>
             </td>
@@ -1073,7 +1073,7 @@ function buildConfirmationEmailHTML(data) {
                 <strong>What happens next?</strong> We'll send you an email update every time your package status changes. You can also track your package anytime using the link above.
               </p>
               <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.6;border-top:1px solid #E2E8F0;padding-top:20px;">
-                If you have any questions about your delivery, please contact our customer service.<br/>
+                If you have any questions about your delivery, please contact our customer service at <a href="mailto:support.sinsok.delivery@gmail.com" style="color:#2563EB;text-decoration:none;">support.sinsok.delivery@gmail.com</a>.<br/>
                 Thank you for choosing Sinsok Delivery.
               </p>
             </td>
