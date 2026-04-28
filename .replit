@@ -1,9 +1,10 @@
-modules = ["nodejs-20", "python-3.11"]
+modules = ["web", "nodejs-20", "nix"]
 [nix]
 channel = "stable-25_05"
 
 [agent]
 expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
 
 [workflows]
 runButton = "Project"
