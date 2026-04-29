@@ -146,15 +146,27 @@ function setup() {
     }
   } catch (e) {}
 
-  // Search Drive by name
-  const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
-  if (files.hasNext()) {
-    const id = files.next().getId();
-    const ss = SpreadsheetApp.openById(id);
-    initSpreadsheet(ss);
-    props.setProperty('_SS_ID', id);
-    Logger.log('✅ Setup complete. Found existing spreadsheet: ' + ss.getName() + ' (' + id + ')');
-    return;
+  // Search Drive by name — but only consider real Google Sheets files.
+  // (A Drive item with the same name could be a folder, shortcut, or other
+  // file type, which would cause "Illegal spreadsheet id or key" when opened.)
+  try {
+    const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
+    while (files.hasNext()) {
+      const file = files.next();
+      if (file.getMimeType() !== MimeType.GOOGLE_SHEETS) continue;
+      try {
+        const id = file.getId();
+        const ss = SpreadsheetApp.openById(id);
+        initSpreadsheet(ss);
+        props.setProperty('_SS_ID', id);
+        Logger.log('✅ Setup complete. Found existing spreadsheet: ' + ss.getName() + ' (' + id + ')');
+        return;
+      } catch (openErr) {
+        Logger.log('⚠️ Skipping un-openable file "' + file.getName() + '": ' + openErr.message);
+      }
+    }
+  } catch (driveErr) {
+    Logger.log('⚠️ Drive search failed, falling back to create: ' + driveErr.message);
   }
 
   // Create a brand-new spreadsheet
@@ -162,6 +174,7 @@ function setup() {
   initSpreadsheet(ss);
   props.setProperty('_SS_ID', ss.getId());
   Logger.log('✅ Setup complete. Created new spreadsheet: ' + ss.getName() + ' (' + ss.getId() + ')');
+  Logger.log('🔗 Open it: ' + ss.getUrl());
 }
 
 // ═══════════════════════════════════════════════════════════════
